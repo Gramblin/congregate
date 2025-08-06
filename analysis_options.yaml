@@ -1,0 +1,19 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+linter:
+  rules:
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    document_ignores: false
+
+formatter:
+  trailing_commas: preserve
+
+analyzer:
+  errors:
+    avoid_print: ignore
+    invalid_annotation_target: ignore
+    prefer_int_literals: ignore
+
+  plugins:
+    - custom_lint
