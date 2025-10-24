@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -50,19 +41,53 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCDiou_6jX84ofCGSJfbkSqrzIk3p_imKA',
-    appId: '1:842734977022:android:157a2ffdc947d7f5f9caaf',
-    messagingSenderId: '842734977022',
-    projectId: 'qubique-congregate',
-    storageBucket: 'qubique-congregate.firebasestorage.app',
+    apiKey: 'AIzaSyDSCXhRM-JSb76Kp_0hYXa4PPnFYcZksiY',
+    appId: '1:1022876601447:android:eb1c55c9a1b4be4ecc98c2',
+    messagingSenderId: '1022876601447',
+    projectId: 'congregate-13607',
+    storageBucket: 'congregate-13607.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBbsZRxmggJOfg8SocSXNwK9kc6GVUBqpE',
-    appId: '1:842734977022:ios:9561878767a5eb86f9caaf',
-    messagingSenderId: '842734977022',
-    projectId: 'qubique-congregate',
-    storageBucket: 'qubique-congregate.firebasestorage.app',
+    apiKey: 'AIzaSyC1ecN-_Geq6eVqTfX9R7QkYu31Qa_wbu0',
+    appId: '1:1022876601447:ios:9e502fddce064a58cc98c2',
+    messagingSenderId: '1022876601447',
+    projectId: 'congregate-13607',
+    storageBucket: 'congregate-13607.firebasestorage.app',
+    androidClientId: '1022876601447-572f99te954ldsrquheo8lsce3kavuhk.apps.googleusercontent.com',
+    iosClientId: '1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go.apps.googleusercontent.com',
     iosBundleId: 'com.qubique.congregate',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCot3LHEgpmovLOHTjd5DOi_g2KQ96-Zu4',
+    appId: '1:1022876601447:web:31e94a0c2f9eec11cc98c2',
+    messagingSenderId: '1022876601447',
+    projectId: 'congregate-13607',
+    authDomain: 'congregate-13607.firebaseapp.com',
+    storageBucket: 'congregate-13607.firebasestorage.app',
+    measurementId: 'G-57LG9L9KW3',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyC1ecN-_Geq6eVqTfX9R7QkYu31Qa_wbu0',
+    appId: '1:1022876601447:ios:9e502fddce064a58cc98c2',
+    messagingSenderId: '1022876601447',
+    projectId: 'congregate-13607',
+    storageBucket: 'congregate-13607.firebasestorage.app',
+    androidClientId: '1022876601447-572f99te954ldsrquheo8lsce3kavuhk.apps.googleusercontent.com',
+    iosClientId: '1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go.apps.googleusercontent.com',
+    iosBundleId: 'com.qubique.congregate',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCot3LHEgpmovLOHTjd5DOi_g2KQ96-Zu4',
+    appId: '1:1022876601447:web:c99ccf44ee79eb7acc98c2',
+    messagingSenderId: '1022876601447',
+    projectId: 'congregate-13607',
+    authDomain: 'congregate-13607.firebaseapp.com',
+    storageBucket: 'congregate-13607.firebasestorage.app',
+    measurementId: 'G-2GGQ9VVG78',
+  );
+
 }

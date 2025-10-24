@@ -45,21 +45,21 @@ deep_link_android:
 	adb shell 'am start -a android.intent.action.VIEW \
     -c android.intent.category.BROWSABLE \
     -d "https://qubique.io/friend/aaa/bbb"' \
-    com.qubique.gramblin.dev
+    com.qubique.suffah.dev
 
 deep_link_ios:
 	@read -p "Enter friend ID: " FRIEND_ID; \
 	read -p "Enter username: " USERNAME; \
-	xcrun simctl openurl booted "gramblin://friend/$$FRIEND_ID/$$USERNAME"
+	xcrun simctl openurl booted "suffah://friend/$$FRIEND_ID/$$USERNAME"
 
 deep_link_profile_ios:
 	@read -p "Enter friend ID: " PROFILE_ID; \
-	xcrun simctl openurl booted "gramblin://profile/$$PROFILE_ID"
+	xcrun simctl openurl booted "suffah://profile/$$PROFILE_ID"
 
 deep_link_macos:
 	@read -p "Enter friend ID: " FRIEND_ID; \
 	read -p "Enter username: " USERNAME; \
-	open "gramblin://friend/$$FRIEND_ID/$$USERNAME"
+	open "suffah://friend/$$FRIEND_ID/$$USERNAME"
 
 web-deploy:
 	flutter build web \

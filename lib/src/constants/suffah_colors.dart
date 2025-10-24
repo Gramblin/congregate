@@ -1,6 +1,6 @@
 import 'package:flutter/rendering.dart';
 
-class GramblinColors {
+class SuffahColors {
   static Color lighterGreen = const Color(0xff09725d);
   static Color darkerGreen = const Color(0xff045e4d);
 

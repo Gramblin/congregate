@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:congregate/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,6 +25,7 @@ class FirebaseInitialization {
 }
 
 Future<void> initializeFirebaseApp() async {
+  log('hello');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
     name: 'Congregate',

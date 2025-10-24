@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:congregate/src/router/app_router_observer.dart';
 import 'package:congregate/src/router/misc_routes/error_screen.dart';
+import 'package:congregate/src/router/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     // debugLogDiagnostics: true,
     observers: [AppRouterObserver(ref)],
     redirect: (context, state) {
+      // return '/home';
       final loggedIn = Supabase.instance.client.auth.currentUser != null;
 
       // 1. Skip redirects for alert dialogs
@@ -32,8 +34,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final uri = state.uri;
 
-      // 2. Handle deep links like gramblin://game/{roomId}
-      if (uri.scheme == 'gramblin' && uri.host == 'game') {
+      // 2. Handle deep links like suffah://game/{roomId}
+      if (uri.scheme == 'suffah' && uri.host == 'game') {
         final roomId = uri.pathSegments.isNotEmpty
             ? uri.pathSegments.first
             : null;
@@ -43,8 +45,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // 3. Handle deep links like gramblin://friend/{userId}/{username}
-      if (uri.scheme == 'gramblin' && uri.host == 'friend') {
+      // 3. Handle deep links like suffah://friend/{userId}/{username}
+      if (uri.scheme == 'suffah' && uri.host == 'friend') {
         final segments = uri.pathSegments;
         final userId = segments.isNotEmpty ? segments[0] : null;
         final username = segments.length > 1 ? segments[1] : null;
@@ -57,8 +59,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // ✅ 4. Handle deep links like gramblin://profile/{userId}
-      if (uri.scheme == 'gramblin' && uri.host == 'profile') {
+      // ✅ 4. Handle deep links like suffah://profile/{userId}
+      if (uri.scheme == 'suffah' && uri.host == 'profile') {
         final userId = uri.pathSegments.isNotEmpty
             ? uri.pathSegments.first
             : null;
@@ -86,8 +88,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     errorPageBuilder: (context, state) =>
         adaptivePageBuilder(ErrorScreen(uriPath: state.uri.path)),
-    // routes: $appRoutes,
-    routes: [],
+    routes: $appRoutes,
   );
 });
 

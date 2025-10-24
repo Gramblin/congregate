@@ -1,26 +1,43 @@
 {
   "project_info": {
-    "project_number": "842734977022",
-    "project_id": "qubique-congregate",
-    "storage_bucket": "qubique-congregate.firebasestorage.app"
+    "project_number": "1022876601447",
+    "project_id": "congregate-13607",
+    "storage_bucket": "congregate-13607.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:842734977022:android:157a2ffdc947d7f5f9caaf",
+        "mobilesdk_app_id": "1:1022876601447:android:eb1c55c9a1b4be4ecc98c2",
         "android_client_info": {
           "package_name": "com.qubique.congregate"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1022876601447-tsunu79ppurr2if099ho7p5f09smh4pg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCDiou_6jX84ofCGSJfbkSqrzIk3p_imKA"
+          "current_key": "AIzaSyDSCXhRM-JSb76Kp_0hYXa4PPnFYcZksiY"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1022876601447-tsunu79ppurr2if099ho7p5f09smh4pg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.qubique.congregate"
+              }
+            }
+          ]
         }
       }
     }

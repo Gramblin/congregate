@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
-class GramblinServices {
+class SuffahServices {
   static Future<void> copyToClipboard(
     BuildContext context, {
     required String text,

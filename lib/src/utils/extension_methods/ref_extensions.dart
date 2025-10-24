@@ -1,9 +1,9 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:gramblin/src/router/app_router.dart';
-// import 'package:gramblin/src/router/misc_routes/alert_dialog_screen.dart';
-// import 'package:gramblin/src/router/misc_routes/dialog_parameters.dart';
-// import 'package:gramblin/src/router/routes.dart';
+// import 'package:suffah/src/router/app_router.dart';
+// import 'package:suffah/src/router/misc_routes/alert_dialog_screen.dart';
+// import 'package:suffah/src/router/misc_routes/dialog_parameters.dart';
+// import 'package:suffah/src/router/routes.dart';
 
 // extension DialogRefExtension on Ref {
 //   void updateDialogParameters({

@@ -1,15 +1,13 @@
-import 'dart:io';
+import 'dart:developer';
 
 import 'package:congregate/src/utils/firebase_initialization.dart';
-import 'package:congregate/src/utils/key_constants.dart';
+import 'package:congregate/src/utils/preferences_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore:depend_on_referenced_package, depend_on_referenced_packages
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -33,9 +31,6 @@ class MainInitializationUtils {
 
   static Future<ProviderContainer> initializeProviders() async {
     await initializeFirebaseApp();
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      await MobileAds.instance.initialize();
-    }
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     final notificationPermissionGiven =
@@ -43,36 +38,35 @@ class MainInitializationUtils {
 
     usePathUrlStrategy();
 
-    const apiKey = String.fromEnvironment(KeyConstants.supabaseJsonKey);
-    const url = String.fromEnvironment(KeyConstants.supabaseUrlJsonKey);
-    const clientId = String.fromEnvironment(
-      KeyConstants.supabaseClientIdJsonKey,
-    );
+    const apiKey = String.fromEnvironment('SUPABASE_API_KEY');
+    const url = String.fromEnvironment('SUPABASE_URL');
+
+    log('api $apiKey url $url');
 
     final sharedPreferences = await SharedPreferences.getInstance();
     await Supabase.initialize(url: url, anonKey: apiKey);
 
     final container = ProviderContainer(
-      // overrides: [
-      //   preferencesProvider.overrideWith((ref) => sharedPreferences),
-      //   clientIdProvider.overrideWith((ref) => clientId),
-      //   userProfileProvider.overrideWith((ref) {
-      //     final jsonString = sharedPreferences.getString('user_profile');
-      //     final context = rootNavigatorKey.currentContext;
-      //     if (jsonString == null) {
-      //       if (context != null) const ProfileSetupRoute().go(context);
-      //       return null;
-      //     }
+      overrides: [
+        preferencesProvider.overrideWith((ref) => sharedPreferences),
 
-      //     final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-      //     final userProfile = UserProfile.fromJson(jsonMap);
+        // userProfileProvider.overrideWith((ref) {
+        //   final jsonString = sharedPreferences.getString('user_profile');
+        //   final context = rootNavigatorKey.currentContext;
+        //   if (jsonString == null) {
+        //     if (context != null) const ProfileSetupRoute().go(context);
+        //     return null;
+        //   }
 
-      //     if (userProfile.countryCode == null) {
-      //       if (context != null) const ProfileSetupRoute().go(context);
-      //     }
-      //     return userProfile;
-      //   }),
-      // ],
+        //   final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+        //   final userProfile = UserProfile.fromJson(jsonMap);
+
+        //   if (userProfile.countryCode == null) {
+        //     if (context != null) const ProfileSetupRoute().go(context);
+        //   }
+        //   return userProfile;
+        // }),
+      ],
     );
 
     if (notificationPermissionGiven) {

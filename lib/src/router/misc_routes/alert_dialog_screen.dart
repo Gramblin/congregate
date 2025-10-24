@@ -1,19 +1,19 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:go_router/go_router.dart';
-// import 'package:gramblin/src/common/material/wide_flat_button.dart';
-// import 'package:gramblin/src/common/material/wide_outlined_button.dart';
-// import 'package:gramblin/src/constants/app_sizes.dart';
-// import 'package:gramblin/src/constants/gramblin_colors.dart';
-// import 'package:gramblin/src/router/misc_routes/dialog_parameters.dart';
-// import 'package:gramblin/src/utils/extension_methods/string_extensions.dart';
+// import 'package:suffah/src/common/material/wide_flat_button.dart';
+// import 'package:suffah/src/common/material/wide_outlined_button.dart';
+// import 'package:suffah/src/constants/app_sizes.dart';
+// import 'package:suffah/src/constants/suffah_colors.dart';
+// import 'package:suffah/src/router/misc_routes/dialog_parameters.dart';
+// import 'package:suffah/src/utils/extension_methods/string_extensions.dart';
 
 // final dialogParametersProvider = StateProvider<DialogParameters>(
 //   (ref) => DialogParameters(title: '', content: ''),
 // );
 
-// class GramblinDialogScreen extends ConsumerWidget {
-//   const GramblinDialogScreen({super.key});
+// class SuffahDialogScreen extends ConsumerWidget {
+//   const SuffahDialogScreen({super.key});
 
 //   @override
 //   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,13 +54,13 @@
 //                 Expanded(
 //                   child: WideOutlinedButton(
 //                     onTap: dialog.onConfirm ?? context.pop,
-//                     foregroundColor: GramblinColors.lighterGreen,
+//                     foregroundColor: SuffahColors.lighterGreen,
 //                     child: Expanded(
 //                       child: Text(
 //                         dialog.confirmLabel ?? 'OK'.hardcoded,
 //                         textAlign: TextAlign.center,
 //                         style: TextStyle(
-//                           color: GramblinColors.lighterGreen,
+//                           color: SuffahColors.lighterGreen,
 //                           fontWeight: FontWeight.w500,
 //                           fontSize: Sizes.p16,
 //                         ),
@@ -72,13 +72,13 @@
 //                 Expanded(
 //                   child: WideOutlinedButton(
 //                     onTap: dialog.onConfirm ?? context.pop,
-//                     foregroundColor: GramblinColors.lighterGreen,
+//                     foregroundColor: SuffahColors.lighterGreen,
 //                     child: Expanded(
 //                       child: Text(
 //                         dialog.confirmLabel ?? 'OK'.hardcoded,
 //                         textAlign: TextAlign.center,
 //                         style: TextStyle(
-//                           color: GramblinColors.lighterGreen,
+//                           color: SuffahColors.lighterGreen,
 //                           fontWeight: FontWeight.w500,
 //                           fontSize: Sizes.p16,
 //                         ),
@@ -89,7 +89,7 @@
 //                 gapW16,
 //                 Expanded(
 //                   child: WideFlatButton(
-//                     backgroundColor: GramblinColors.alertDialogPositiveColor,
+//                     backgroundColor: SuffahColors.alertDialogPositiveColor,
 //                     foregroundColor: Colors.white,
 //                     onTap: dialog.onCancel ?? context.pop,
 //                     child: Expanded(

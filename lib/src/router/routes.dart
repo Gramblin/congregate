@@ -1,4 +1,14 @@
-// part 'routes.g.dart';
+import 'dart:io';
+
+import 'package:congregate/src/features/home/presentation/home_screen.dart';
+import 'package:congregate/src/features/login/presentation/login_screen.dart';
+import 'package:congregate/src/features/profile/presentation/profile_screen.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+part 'routes.g.dart';
 
 // @TypedGoRoute<FriendRequestRoute>(path: '/friend/:userId/:username')
 // @immutable
@@ -43,21 +53,20 @@
 //   }
 // }
 
-// @TypedGoRoute<LoginRoute>(
-//   path: '/login',
-//   routes: [TypedGoRoute<ProfileSetupRoute>(path: 'profile-setup')],
-// )
-// @immutable
-// class LoginRoute extends GoRouteData {
-//   const LoginRoute();
+@TypedGoRoute<LoginRoute>(
+  path: '/login',
+)
+@immutable
+class LoginRoute extends GoRouteData {
+  const LoginRoute();
 
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(child: LoginScreen(), name: 'Login')
-//         : const CupertinoPage(child: LoginScreen(), name: 'Login');
-//   }
-// }
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return kIsWeb
+        ? const CupertinoPage(child: LoginScreen(), name: 'Login')
+        : const CupertinoPage(child: LoginScreen(), name: 'Login');
+  }
+}
 
 // @immutable
 // class ProfileSetupRoute extends GoRouteData {
@@ -131,27 +140,21 @@
 //   }
 // }
 
-// @TypedGoRoute<HomeRoute>(
-//   path: '/home',
-//   routes: [
-//     TypedGoRoute<TestRoomRoute>(path: 'test-room-screen'),
-//     TypedGoRoute<WaitingOpponentRoute>(path: 'waiting-opponent'),
-//     TypedGoRoute<GameRoute>(path: 'game/:roomId'),
-//     TypedGoRoute<UserProfileSettingsRoute>(path: 'user-profile-settings'),
-//     TypedGoRoute<FriendsRoute>(path: 'friends-list'),
-//   ],
-// )
-// @immutable
-// class HomeRoute extends GoRouteData {
-//   const HomeRoute();
+@TypedGoRoute<HomeRoute>(
+  path: '/home',
+  routes: [TypedGoRoute<ProfileRoute>(path: 'profile')],
+)
+@immutable
+class HomeRoute extends GoRouteData {
+  const HomeRoute();
 
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(child: HomeScreen(), name: 'Home')
-//         : const CupertinoPage(child: HomeScreen(), name: 'Home');
-//   }
-// }
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return Platform.isAndroid
+        ? const MaterialPage(child: HomeScreen(), name: 'Home')
+        : const CupertinoPage(child: HomeScreen(), name: 'Home');
+  }
+}
 
 // @immutable
 // class TestRoomRoute extends GoRouteData {
@@ -213,23 +216,23 @@
 //   }
 // }
 
-// @immutable
-// class UserProfileSettingsRoute extends GoRouteData {
-//   const UserProfileSettingsRoute();
+@immutable
+class ProfileRoute extends GoRouteData {
+  const ProfileRoute();
 
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(
-//             child: UserProfileSettingsScreen(),
-//             name: 'UserProfileSettings',
-//           )
-//         : const CupertinoPage(
-//             child: UserProfileSettingsScreen(),
-//             name: 'UserProfileSettings',
-//           );
-//   }
-// }
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return Platform.isAndroid
+        ? const MaterialPage(
+            child: ProfileScreen(),
+            name: 'Profile',
+          )
+        : const CupertinoPage(
+            child: ProfileScreen(),
+            name: 'Profile',
+          );
+  }
+}
 
 // @immutable
 // class FriendsRoute extends GoRouteData {
@@ -261,7 +264,7 @@
 //         shape: RoundedRectangleBorder(
 //           borderRadius: BorderRadiusGeometry.circular(Sizes.p8),
 //         ),
-//         child: const GramblinDialogScreen(),
+//         child: const SuffahDialogScreen(),
 //       ),
 //       barrierColor: Colors.black45,
 //       opaque: false,
