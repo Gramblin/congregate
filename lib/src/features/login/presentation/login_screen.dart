@@ -45,7 +45,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         children: [
           Scaffold(
             body: ref
-                .watch(userStream)
+                .watch(userStreamProvider)
                 .when(
                   data: (data) {
                     final userAvailable = data.session != null;

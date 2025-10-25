@@ -1,7 +1,4 @@
-import 'dart:developer';
-
 import 'package:congregate/src/features/login/domain/user_profile.dart';
-import 'package:congregate/src/utils/key_constants.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -67,18 +64,19 @@ class LoginRemoteRepository {
 
       final userId = user.id;
 
-      final response = await supabaseClient
-          .from(TableTitleConstants.profile)
-          .select()
-          .eq('id', userId)
-          .single();
+      // final response = await supabaseClient
+      //     .from(TableTitleConstants.profile)
+      //     .select()
+      //     .eq('id', userId)
+      //     .single();
 
-      final userProfile = UserProfile.fromJson(response);
+      // final userProfile = UserProfile.fromJson(response);
 
-      return userProfile;
+      // return userProfile;
     } catch (e) {
       throw Exception('Failed to fetch user profile: $e');
     }
+    return null;
   }
 
   Future<UserProfile?> updateProfile(
@@ -101,22 +99,22 @@ class LoginRemoteRepository {
         throw Exception('No valid fields to update.');
       }
 
-      await supabaseClient
-          .from(TableTitleConstants.profile)
-          .update(updates)
-          .eq('id', userId);
+      // await supabaseClient
+      //     .from(TableTitleConstants.profile)
+      //     .update(updates)
+      //     .eq('id', userId);
 
-      return await fetchUserProfile();
+      // return await fetchUserProfile();
     } catch (e) {
       print('Error: $e');
       throw Exception('Failed to update profile: $e');
     }
+    return null;
   }
 }
 
 final loginRemoteRepositoryProvider = Provider<LoginRemoteRepository>((ref) {
   const clientId = String.fromEnvironment('IOS_CLIENT_ID');
-  log('cid is $clientId');
   return LoginRemoteRepository(
     supabaseClient: ref.watch(supabaseProvider).client,
     clientId: clientId,

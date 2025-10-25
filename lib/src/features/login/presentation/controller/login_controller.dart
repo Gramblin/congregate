@@ -1,17 +1,28 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:congregate/src/features/login/data/login_remote_repository.dart';
-import 'package:congregate/src/features/login/domain/user_profile.dart';
 import 'package:congregate/src/router/app_router.dart';
 import 'package:congregate/src/utils/preferences_provider.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class LoginController extends Notifier<AsyncValue<void>> {
+part 'login_controller.g.dart';
+
+@riverpod
+Stream<AuthState> userStream(Ref ref) {
+  return ref.watch(supabaseProvider).client.auth.onAuthStateChange;
+}
+
+@riverpod
+String? userId(Ref ref) {
+  return ref.watch(supabaseProvider).client.auth.currentUser?.id;
+}
+
+@riverpod
+class LoginController extends _$LoginController {
   @override
   AsyncValue<void> build() {
     return const AsyncData(null);
@@ -51,12 +62,8 @@ class LoginController extends Notifier<AsyncValue<void>> {
     String? countryCode,
     bool showToast = true,
   }) async {
-    log('message $username ${countryCode}s ');
     final user = ref.read(supabaseProvider).client.auth.currentUser;
-
-    if (user == null) {
-      throw Exception('User is not logged in.');
-    }
+    if (user == null) throw Exception('User is not logged in.');
 
     final repository = ref.read(loginRemoteRepositoryProvider);
     state = const AsyncLoading();
@@ -72,22 +79,13 @@ class LoginController extends Notifier<AsyncValue<void>> {
     final context = rootNavigatorKey.currentContext;
     if (!result.hasError) {
       state = const AsyncValue.data(null);
-      // await cacheUserProfile(result.value);
-
       if (context != null && context.mounted && showToast) {
-        // final message = (username != null && countryCode == null)
-        //     ? LocaleKeys.usernameUpdated.tr()
-        //     : (countryCode != null && username == null)
-        //     ? LocaleKeys.countryUpdated.tr()
-        //     : LocaleKeys.profileUpdated.tr();
-
-        // context.showInformationToast(message.hardcoded, autoDismiss: true);
+        // Show success toast if needed
       }
     } else {
-      log('errrrr is $result');
       if (context != null && context.mounted) {
         state = AsyncError(result.error!, StackTrace.current);
-        // context.showSnackbar(LocaleKeys.anErrorOcurredLabel.tr());
+        // Show error toast if needed
       }
     }
   }
@@ -107,9 +105,7 @@ class LoginController extends Notifier<AsyncValue<void>> {
 
   Future<void> getAndCacheUserProfile() async {
     state = const AsyncLoading();
-
     final repository = ref.read(loginRemoteRepositoryProvider);
-
     final userProfileResult = await AsyncValue.guard(
       repository.fetchUserProfile,
     );
@@ -124,24 +120,14 @@ class LoginController extends Notifier<AsyncValue<void>> {
 
   Future<void> cacheUserProfile(UserProfile profile) async {
     ref.read(userProfileProvider.notifier).state = profile;
-
     final prefs = ref.read(preferencesProvider);
-    final jsonString = jsonEncode(profile.toJson());
+    final jsonString = jsonEncode(profile);
     await prefs.setString('user_profile', jsonString);
   }
 }
 
-final userStream = StreamProvider<AuthState>(
-  (ref) => ref.watch(supabaseProvider).client.auth.onAuthStateChange,
-);
-
-final userIdProvider = StateProvider<String?>((ref) {
-  return ref.watch(supabaseProvider).client.auth.currentUser?.id;
-});
-
-final loginControllerProvider =
-    NotifierProvider<LoginController, AsyncValue<void>>(LoginController.new);
-
-final userProfileProvider = StateProvider<UserProfile?>(
-  (ref) => throw UnimplementedError(),
-);
+@riverpod
+class UserProfile extends _$UserProfile {
+  @override
+  UserProfile? build() => throw UnimplementedError();
+}

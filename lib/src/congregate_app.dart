@@ -45,7 +45,7 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     ref.read(supabaseProvider).client.auth.onAuthStateChange.listen((data) {
-      log(data.session?.expiresAt.toString() ?? '');
+      // log(data.session?.expiresAt.toString() ?? '');
       if (data.event == AuthChangeEvent.userUpdated) {
         log('user updated ${data.session?.user}');
         ref.read(routerProvider).refresh();

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:congregate/src/utils/firebase_initialization.dart';
 import 'package:congregate/src/utils/preferences_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -40,8 +38,6 @@ class MainInitializationUtils {
 
     const apiKey = String.fromEnvironment('SUPABASE_API_KEY');
     const url = String.fromEnvironment('SUPABASE_URL');
-
-    log('api $apiKey url $url');
 
     final sharedPreferences = await SharedPreferences.getInstance();
     await Supabase.initialize(url: url, anonKey: apiKey);

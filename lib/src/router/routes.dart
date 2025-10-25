@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:congregate/src/features/create_group/presentation/view/create_group_screen.dart';
 import 'package:congregate/src/features/home/presentation/home_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
 import 'package:congregate/src/features/profile/presentation/profile_screen.dart';
@@ -57,7 +58,7 @@ part 'routes.g.dart';
   path: '/login',
 )
 @immutable
-class LoginRoute extends GoRouteData {
+class LoginRoute extends GoRouteData with $LoginRoute {
   const LoginRoute();
 
   @override
@@ -145,7 +146,7 @@ class LoginRoute extends GoRouteData {
   routes: [TypedGoRoute<ProfileRoute>(path: 'profile')],
 )
 @immutable
-class HomeRoute extends GoRouteData {
+class HomeRoute extends GoRouteData with $HomeRoute {
   const HomeRoute();
 
   @override
@@ -217,7 +218,7 @@ class HomeRoute extends GoRouteData {
 // }
 
 @immutable
-class ProfileRoute extends GoRouteData {
+class ProfileRoute extends GoRouteData with $ProfileRoute {
   const ProfileRoute();
 
   @override
@@ -231,6 +232,21 @@ class ProfileRoute extends GoRouteData {
             child: ProfileScreen(),
             name: 'Profile',
           );
+  }
+}
+
+@TypedGoRoute<CreateGroupRoute>(
+  path: '/create-group',
+)
+@immutable
+class CreateGroupRoute extends GoRouteData with $CreateGroupRoute {
+  const CreateGroupRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return kIsWeb
+        ? const CupertinoPage(child: CreateGroupScreen(), name: 'CreateGroup')
+        : const CupertinoPage(child: CreateGroupScreen(), name: 'CreateGroup');
   }
 }
 
