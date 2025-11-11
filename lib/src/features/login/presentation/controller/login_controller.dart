@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:congregate/src/features/login/data/login_remote_repository.dart';
@@ -16,12 +15,12 @@ Stream<AuthState> userStream(Ref ref) {
   return ref.watch(supabaseProvider).client.auth.onAuthStateChange;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 String? userId(Ref ref) {
   return ref.watch(supabaseProvider).client.auth.currentUser?.id;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LoginController extends _$LoginController {
   @override
   AsyncValue<void> build() {
@@ -38,6 +37,7 @@ class LoginController extends _$LoginController {
     ref.read(userIdProvider);
     if (!result.hasError) {
       state = const AsyncData(null);
+      ref.invalidate(routerProvider);
     } else {
       state = AsyncError(result.error!, StackTrace.current);
     }
@@ -57,39 +57,6 @@ class LoginController extends _$LoginController {
     }
   }
 
-  Future<void> updateUserProfile({
-    String? username,
-    String? countryCode,
-    bool showToast = true,
-  }) async {
-    final user = ref.read(supabaseProvider).client.auth.currentUser;
-    if (user == null) throw Exception('User is not logged in.');
-
-    final repository = ref.read(loginRemoteRepositoryProvider);
-    state = const AsyncLoading();
-
-    final result = await AsyncValue.guard(
-      () => repository.updateProfile(
-        user.id,
-        username: username,
-        countryCode: countryCode,
-      ),
-    );
-
-    final context = rootNavigatorKey.currentContext;
-    if (!result.hasError) {
-      state = const AsyncValue.data(null);
-      if (context != null && context.mounted && showToast) {
-        // Show success toast if needed
-      }
-    } else {
-      if (context != null && context.mounted) {
-        state = AsyncError(result.error!, StackTrace.current);
-        // Show error toast if needed
-      }
-    }
-  }
-
   void setUpAuthListener() {
     ref.read(supabaseProvider).client.auth.onAuthStateChange.listen((
       data,
@@ -98,36 +65,8 @@ class LoginController extends _$LoginController {
         await closeInAppWebView();
       }
       if (data.event == AuthChangeEvent.signedIn) {
-        await getAndCacheUserProfile();
+        // await getAndCacheUserProfile();
       }
     });
   }
-
-  Future<void> getAndCacheUserProfile() async {
-    state = const AsyncLoading();
-    final repository = ref.read(loginRemoteRepositoryProvider);
-    final userProfileResult = await AsyncValue.guard(
-      repository.fetchUserProfile,
-    );
-    if (!userProfileResult.hasError && userProfileResult.value != null) {
-      // await cacheUserProfile(userProfileResult.value);
-      state = const AsyncValue.data(null);
-      ref.read(routerProvider).refresh();
-    } else {
-      state = AsyncError(userProfileResult.error!, StackTrace.current);
-    }
-  }
-
-  Future<void> cacheUserProfile(UserProfile profile) async {
-    ref.read(userProfileProvider.notifier).state = profile;
-    final prefs = ref.read(preferencesProvider);
-    final jsonString = jsonEncode(profile);
-    await prefs.setString('user_profile', jsonString);
-  }
-}
-
-@riverpod
-class UserProfile extends _$UserProfile {
-  @override
-  UserProfile? build() => throw UnimplementedError();
 }

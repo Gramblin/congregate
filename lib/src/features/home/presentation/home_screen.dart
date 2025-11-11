@@ -1,6 +1,8 @@
 import 'package:congregate/src/features/create_group/presentation/controller/group_controller.dart';
 import 'package:congregate/src/features/home/presentation/controller/home_controller.dart';
+import 'package:congregate/src/features/login/presentation/controller/login_controller.dart';
 import 'package:congregate/src/router/routes.dart';
+import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +14,21 @@ class HomeScreen extends ConsumerWidget {
     final asyncGroups = ref.watch(homeControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Groups')),
+      appBar: AppBar(
+        title: const Text('My Groups'),
+        leading: IconButton(
+          icon: const Icon(Icons.account_circle_outlined),
+          onPressed: () => const ProfileRoute().push<void>(context),
+          tooltip: 'Account'.hardcoded,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.waving_hand_outlined),
+            onPressed: ref.read(loginControllerProvider.notifier).signOut,
+            tooltip: 'Sign out'.hardcoded,
+          ),
+        ],
+      ),
       body: asyncGroups.when(
         data: (groups) => groups.isEmpty
             ? const Center(child: Text("You're not in any groups yet."))
@@ -35,9 +51,7 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) {
-          return Center(child: Text('❌ Error: $e'));
-        },
+        error: (e, st) => Center(child: Text('❌ Error: $e')),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

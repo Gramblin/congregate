@@ -5,11 +5,12 @@ part 'user_profile.g.dart';
 
 @freezed
 abstract class UserProfile with _$UserProfile {
-  factory UserProfile({
-    String? id,
-    @JsonKey(name: 'username') String? username,
-    @JsonKey(name: 'fcm_token') String? fcmToken,
-    @JsonKey(name: 'country_code') String? countryCode,
+  const factory UserProfile({
+    @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'display_name') required String displayName,
+    @JsonKey(name: 'real_name') String? realName,
+    @JsonKey(name: 'show_real_name') @Default(false) bool showRealName,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _UserProfile;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) =>

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:congregate/src/features/login/domain/user_profile.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,52 +66,59 @@ class LoginRemoteRepository {
 
       final userId = user.id;
 
-      // final response = await supabaseClient
-      //     .from(TableTitleConstants.profile)
-      //     .select()
-      //     .eq('id', userId)
-      //     .single();
+      final response = await supabaseClient
+          .from('user_profiles')
+          .select()
+          .eq('user_id', userId)
+          .single();
 
-      // final userProfile = UserProfile.fromJson(response);
+      final userProfile = UserProfile.fromJson(response);
+      log('e is $response');
 
-      // return userProfile;
+      return userProfile;
     } catch (e) {
+      log('e is $e');
       throw Exception('Failed to fetch user profile: $e');
     }
-    return null;
   }
 
   Future<UserProfile?> updateProfile(
     String userId, {
-    String? username,
-    String? countryCode,
+    String? displayName,
+    String? realName,
+    bool? showRealName,
   }) async {
     try {
       final updates = <String, dynamic>{};
 
-      if (username != null && username.trim().isNotEmpty) {
-        updates['username'] = username;
+      if (displayName != null && displayName.trim().isNotEmpty) {
+        updates['display_name'] = displayName;
       }
-
-      if (countryCode != null && countryCode.trim().isNotEmpty) {
-        updates['country_code'] = countryCode;
+      if (realName != null && realName.trim().isNotEmpty) {
+        updates['real_name'] = realName;
+      }
+      if (showRealName != null) {
+        updates['show_real_name'] = showRealName;
       }
 
       if (updates.isEmpty) {
         throw Exception('No valid fields to update.');
       }
 
-      // await supabaseClient
-      //     .from(TableTitleConstants.profile)
-      //     .update(updates)
-      //     .eq('id', userId);
+      final result = await supabaseClient
+          .from('user_profiles')
+          .upsert({
+            'user_id': userId,
+            ...updates,
+          })
+          .select()
+          .maybeSingle();
 
-      // return await fetchUserProfile();
-    } catch (e) {
-      print('Error: $e');
-      throw Exception('Failed to update profile: $e');
+      return result == null ? null : UserProfile.fromJson(result);
+    } catch (e, st) {
+      log('UserProfileRemoteRepository.updateProfile exception: $e\n$st');
+      rethrow;
     }
-    return null;
   }
 }
 

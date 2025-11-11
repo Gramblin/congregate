@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:congregate/src/features/create_group/presentation/view/create_group_screen.dart';
 import 'package:congregate/src/features/home/presentation/home_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
-import 'package:congregate/src/features/profile/presentation/profile_screen.dart';
+import 'package:congregate/src/features/profile/presentation/controllers/views/profile_screen.dart';
+import 'package:congregate/src/features/profile/presentation/controllers/views/profile_setup_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +57,7 @@ part 'routes.g.dart';
 
 @TypedGoRoute<LoginRoute>(
   path: '/login',
+  routes: [TypedGoRoute<ProfileSetupRoute>(path: 'profile-setup')],
 )
 @immutable
 class LoginRoute extends GoRouteData with $LoginRoute {
@@ -69,77 +71,20 @@ class LoginRoute extends GoRouteData with $LoginRoute {
   }
 }
 
-// @immutable
-// class ProfileSetupRoute extends GoRouteData {
-//   const ProfileSetupRoute();
+@immutable
+class ProfileSetupRoute extends GoRouteData with $ProfileSetupRoute {
+  const ProfileSetupRoute();
 
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(child: ProfileSetupScreen(), name: 'ProfileSetup')
-//         : const CupertinoPage(
-//             child: ProfileSetupScreen(),
-//             name: 'ProfileSetup',
-//           );
-//   }
-// }
-
-// @TypedGoRoute<GameOverRoute>(path: '/game-over')
-// @immutable
-// class GameOverRoute extends GoRouteData {
-//   const GameOverRoute();
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(child: GameOverScreen(), name: 'GameOver')
-//         : const CupertinoPage(child: GameOverScreen(), name: 'GameOver');
-//   }
-// }
-
-// @TypedGoRoute<LoginCallbackRoute>(path: '/login-callback')
-// @immutable
-// class LoginCallbackRoute extends GoRouteData {
-//   const LoginCallbackRoute();
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? CupertinoPage(
-//             child: Scaffold(
-//               appBar: AppBar(
-//                 title: const SelectableText('Debug Login Callback Screen'),
-//               ),
-//             ),
-//           )
-//         : CupertinoPage(
-//             child: Scaffold(
-//               appBar: AppBar(
-//                 title: const SelectableText('Debug Login Callback Screen'),
-//               ),
-//             ),
-//           );
-//   }
-// }
-
-// @TypedGoRoute<AnimatedTextWidgetRoute>(path: '/test-animated-widget')
-// @immutable
-// class AnimatedTextWidgetRoute extends GoRouteData {
-//   const AnimatedTextWidgetRoute();
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(
-//             child: AnimatedTextWidgetScreen(),
-//             name: 'AnimatedText',
-//           )
-//         : const CupertinoPage(
-//             child: AnimatedTextWidgetScreen(),
-//             name: 'AnimatedText',
-//           );
-//   }
-// }
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return kIsWeb
+        ? const CupertinoPage(child: ProfileSetupScreen(), name: 'ProfileSetup')
+        : const CupertinoPage(
+            child: ProfileSetupScreen(),
+            name: 'ProfileSetup',
+          );
+  }
+}
 
 @TypedGoRoute<HomeRoute>(
   path: '/home',

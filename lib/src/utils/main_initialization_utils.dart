@@ -1,10 +1,14 @@
+import 'dart:convert';
+
+import 'package:congregate/src/features/login/domain/user_profile.dart';
+import 'package:congregate/src/features/profile/presentation/controllers/user_profile_notifier.dart';
 import 'package:congregate/src/utils/firebase_initialization.dart';
 import 'package:congregate/src/utils/preferences_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// ignore:depend_on_referenced_package, depend_on_referenced_packages
+// ignore: depend_on_referenced_packages
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,33 +46,39 @@ class MainInitializationUtils {
     final sharedPreferences = await SharedPreferences.getInstance();
     await Supabase.initialize(url: url, anonKey: apiKey);
 
+    // ✅ Create container first
     final container = ProviderContainer(
       overrides: [
         preferencesProvider.overrideWith((ref) => sharedPreferences),
-
-        // userProfileProvider.overrideWith((ref) {
-        //   final jsonString = sharedPreferences.getString('user_profile');
-        //   final context = rootNavigatorKey.currentContext;
-        //   if (jsonString == null) {
-        //     if (context != null) const ProfileSetupRoute().go(context);
-        //     return null;
-        //   }
-
-        //   final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-        //   final userProfile = UserProfile.fromJson(jsonMap);
-
-        //   if (userProfile.countryCode == null) {
-        //     if (context != null) const ProfileSetupRoute().go(context);
-        //   }
-        //   return userProfile;
-        // }),
       ],
     );
 
+    final supabase = Supabase.instance.client;
+    final currentUser = supabase.auth.currentUser;
+
+    if (currentUser != null) {
+      try {
+        final notifier = container.read(userProfileProvider.notifier);
+
+        // First try cached data
+        final cached = sharedPreferences.getString('cached_user_profile');
+        if (cached != null) {
+          final cachedJson = jsonDecode(cached) as Map<String, dynamic>;
+          final userProfile = UserProfile.fromJson(cachedJson);
+          container.read(userProfileProvider.notifier).state = AsyncData(
+            userProfile,
+          );
+        }
+
+        await notifier.build();
+      } on Exception catch (e, st) {
+        debugPrint('❌ Failed to initialize user profile: $e\n$st');
+      }
+    }
+
+    // ✅ Optional: update FCM token if permission granted
     if (notificationPermissionGiven) {
-      // await container
-      //     .read(friendshipControllerProvider.notifier)
-      //     .updateFcmToken();
+      // await container.read(friendshipControllerProvider.notifier).updateFcmToken();
     }
 
     return container;

@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:congregate/src/features/profile/presentation/controllers/user_profile_notifier.dart';
 import 'package:congregate/src/router/app_router_observer.dart';
 import 'package:congregate/src/router/misc_routes/error_screen.dart';
 import 'package:congregate/src/router/routes.dart';
@@ -15,7 +17,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   print('🔄 RouterProvider rebuilding at ${DateTime.now()}');
 
   // final loggedIn = ref.watch(userStream).value?.session != null;
-  // final userProfile = ref.watch(userProfileProvider);
+  final userProfile = ref.watch(userProfileProvider).value;
+
   // final supabase = ref.watch(supabaseProvider);
 
   return GoRouter(
@@ -71,18 +74,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 5. Not signed in → login
+
       if (loggedIn == false && !state.uri.path.startsWith('/login')) {
         return '/login';
       }
 
-      // 6. No username/profile setup
-      // if (loggedIn != false &&
-      //     (userProfile == null ||
-      //         userProfile.username == null ||
-      //         userProfile.countryCode == null) &&
-      //     !state.uri.path.startsWith('/login/profile-setup')) {
-      //   return '/login/profile-setup';
-      // }
+      log('prif $userProfile');
+
+      // 6. Profile incomplete → setup
+      final needsProfileSetup =
+          userProfile == null ||
+          userProfile.displayName.isEmpty ||
+          userProfile.realName == null ||
+          userProfile.realName!.isEmpty;
+
+      if (loggedIn &&
+          needsProfileSetup &&
+          !state.uri.path.startsWith('/login/profile-setup')) {
+        return '/login/profile-setup';
+      }
 
       return null;
     },

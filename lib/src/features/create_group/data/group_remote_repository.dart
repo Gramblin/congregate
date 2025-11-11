@@ -63,7 +63,7 @@ class GroupRemoteRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 GroupRemoteRepository groupRemoteRepository(Ref ref) {
   return GroupRemoteRepository(ref.watch(supabaseProvider).client);
 }

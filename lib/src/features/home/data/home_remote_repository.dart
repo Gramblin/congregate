@@ -27,7 +27,7 @@ class HomeRemoteRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 HomeRemoteRepository homeRemoteRepository(Ref ref) {
   final client = ref.watch(supabaseProvider);
   return HomeRemoteRepository(client.client);
