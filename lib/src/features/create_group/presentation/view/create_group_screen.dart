@@ -64,7 +64,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                         .read(groupControllerProvider.notifier)
                         .createGroup(
                           name: _nameController.text,
-                          visibility: _visibility,
+                          isPublic: !(_visibility == 'private'),
                         );
                   }
                 },

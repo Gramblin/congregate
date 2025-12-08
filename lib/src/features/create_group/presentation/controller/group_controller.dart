@@ -16,7 +16,7 @@ class GroupController extends _$GroupController {
 
   Future<void> createGroup({
     required String name,
-    required String visibility,
+    required bool isPublic,
   }) async {
     state = const AsyncLoading();
 
@@ -26,8 +26,7 @@ class GroupController extends _$GroupController {
     final repo = ref.read(groupRemoteRepositoryProvider);
 
     state = await AsyncValue.guard(
-      () =>
-          repo.createGroup(name: name, visibility: visibility, userId: userId),
+      () => repo.createGroup(name: name, isPublic: isPublic, userId: userId),
     );
 
     final context = rootNavigatorKey.currentContext;

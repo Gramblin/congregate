@@ -14,7 +14,7 @@ class GroupRemoteRepository {
 
   Future<Group> createGroup({
     required String name,
-    required String visibility,
+    required bool isPublic,
     required String userId,
   }) async {
     try {
@@ -27,7 +27,7 @@ class GroupRemoteRepository {
           .insert({
             'id': groupId,
             'name': name,
-            'visibility': visibility,
+            'is_public': isPublic,
             'topic_id': topicId,
             'created_by': userId,
           })
@@ -41,19 +41,20 @@ class GroupRemoteRepository {
     }
   }
 
-  Future<bool> deleteGroup({
-    required String groupId,
-  }) async {
+  Future<bool> deleteGroup({required String groupId}) async {
     try {
-      log('gid $groupId');
       final user = client.auth.currentUser;
-      if (user == null) {
-        throw Exception('Not authenticated');
+      if (user == null) throw Exception('Not authenticated');
+
+      final result = await client
+          .from('groups')
+          .delete()
+          .eq('id', groupId)
+          .select(); // return all deleted rows
+
+      if (result.isEmpty) {
+        throw Exception('No group deleted (maybe not owner or invalid id)');
       }
-
-      final response = await client.from('groups').delete().eq('id', groupId);
-
-      log('responnse is $response');
 
       return true;
     } catch (e, st) {

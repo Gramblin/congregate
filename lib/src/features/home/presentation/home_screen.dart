@@ -11,7 +11,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncGroups = ref.watch(homeControllerProvider);
+    final asyncState = ref.watch(homeControllerProvider);
+    final controller = ref.watch(homeControllerProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,29 +30,90 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: asyncGroups.when(
-        data: (groups) => groups.isEmpty
-            ? const Center(child: Text("You're not in any groups yet."))
-            : ListView.builder(
-                itemCount: groups.length,
-                itemBuilder: (context, index) {
-                  final group = groups[index];
-                  return ListTile(
-                    title: Text(group.name),
-                    subtitle: Text(group.visibility),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () {
-                        ref
-                            .read(groupControllerProvider.notifier)
-                            .removeGroup(group.id);
-                      },
-                    ),
-                  );
-                },
-              ),
+      body: asyncState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('❌ Error: $e')),
+        data: (state) {
+          final userGroups = state.userGroups;
+          final joinableGroups = state.joinableGroups;
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              await controller.refreshUserGroups();
+              await controller.loadJoinableGroups();
+            },
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 120),
+              children: [
+                // --------------------------
+                // 🔹 USER GROUPS SECTION
+                // --------------------------
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Your Groups',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                if (userGroups.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text('You’re not in any groups yet.'),
+                  )
+                else
+                  ...userGroups.map((group) {
+                    return ListTile(
+                      title: Text(group.name),
+                      subtitle: Text(group.isPublic ? 'Public' : 'Private'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () {
+                          ref
+                              .read(groupControllerProvider.notifier)
+                              .removeGroup(group.id);
+                        },
+                      ),
+                    );
+                  }),
+
+                const Divider(height: 40),
+
+                // --------------------------
+                // 🔹 JOINABLE GROUPS SECTION
+                // --------------------------
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Joinable Groups',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                if (joinableGroups.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text('No public groups available to join.'),
+                  )
+                else
+                  ...joinableGroups.map((group) {
+                    return ListTile(
+                      title: Text(group.name),
+                      subtitle: const Text('Public'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.login),
+                        onPressed: () {
+                          // ref
+                          //     .read(groupControllerProvider.notifier)
+                          //     .joinGroup(group.id);
+                        },
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

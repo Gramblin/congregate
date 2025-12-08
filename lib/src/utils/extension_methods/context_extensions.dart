@@ -44,17 +44,19 @@ extension ContextExtensions on BuildContext {
               children: [
                 if (icon != null) Icon(icon),
                 gapW16,
-                SelectableText(
-                  error == SuccessTypeEnum.error
-                      ? text
-                            .removeExceptionTraces()
-                            .removeExceptionPrefix()
-                            .trim()
-                            .capitalizeFirstLetter()
-                      : text,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: Sizes.p16,
+                Expanded(
+                  child: Text(
+                    error == SuccessTypeEnum.error
+                        ? text
+                              .removeExceptionTraces()
+                              .removeExceptionPrefix()
+                              .trim()
+                              .capitalizeFirstLetter()
+                        : text,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: Sizes.p16,
+                    ),
                   ),
                 ),
               ],

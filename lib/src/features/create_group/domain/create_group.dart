@@ -7,7 +7,7 @@ part 'create_group.g.dart';
 abstract class CreateGroup with _$CreateGroup {
   const factory CreateGroup({
     required String name,
-    required String visibility,
+    required bool isPublic,
   }) = _CreateGroup;
 
   factory CreateGroup.fromJson(Map<String, dynamic> json) =>

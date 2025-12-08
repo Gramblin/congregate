@@ -63,16 +63,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             return const Center(child: Text('No profile found.'));
           }
 
-          // Populate text fields only once after data loads
           if (_displayNameController.text.isEmpty) {
-            _displayNameController.text = profile.displayName ?? '';
+            _displayNameController.text = profile.displayName;
           }
           if (_realNameController.text.isEmpty) {
             _realNameController.text = profile.realName ?? '';
           }
 
-          final shareLink =
-              'https://congregate.app/profile/${profile.userId}'; // deep link / share link
+          final shareLink = 'https://congregate.app/profile/${profile.userId}';
 
           return Padding(
             padding: const EdgeInsets.all(Sizes.p16),
@@ -114,7 +112,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   gapH24,
 
-                  // --- Visibility Switch ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -131,7 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             await ref
                                 .read(userProfileProvider.notifier)
                                 .updateProfile(showRealName: value);
-                          } catch (e, st) {
+                          } on Exception catch (e, st) {
                             log('updateProfile(showRealName) error: $e\n$st');
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +165,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   'Check out my Congregate profile: $shareLink',
                             ),
                           );
-                        } catch (_) {
+                        } on Exception catch (_) {
                           await Clipboard.setData(
                             ClipboardData(text: shareLink),
                           );
@@ -218,7 +215,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       setState(() {
         _hasChanges = false;
       });
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       log('saveChanges error: $e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
