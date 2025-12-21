@@ -65,6 +65,52 @@ class HomeController extends _$HomeController {
     );
   }
 
+  Future<void> joinGroup(String groupId) async {
+    final supabase = ref.read(supabaseProvider).client;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    final repo = ref.read(homeRemoteRepositoryProvider);
+
+    // 1. Insert into group_members
+    await repo.joinGroup(groupId, user.id);
+
+    // 2. Refresh user groups + joinable groups
+    final updatedUserGroups = await repo.fetchUserGroups(user.id);
+    final updatedJoinableGroups = await repo.fetchJoinableGroups(user.id);
+
+    // 3. Update UI state
+    state = AsyncData(
+      HomeState(
+        userGroups: updatedUserGroups,
+        joinableGroups: updatedJoinableGroups,
+      ),
+    );
+  }
+
+  Future<void> leaveGroup(String groupId) async {
+    final supabase = ref.read(supabaseProvider).client;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    final repo = ref.read(homeRemoteRepositoryProvider);
+
+    // 1. Leave the group
+    await repo.leaveGroup(groupId, user.id);
+
+    // 2. Reload both lists
+    final updatedUserGroups = await repo.fetchUserGroups(user.id);
+    final updatedJoinableGroups = await repo.fetchJoinableGroups(user.id);
+
+    // 3. Update state
+    state = AsyncData(
+      HomeState(
+        userGroups: updatedUserGroups,
+        joinableGroups: updatedJoinableGroups,
+      ),
+    );
+  }
+
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(build);

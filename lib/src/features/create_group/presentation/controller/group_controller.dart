@@ -48,4 +48,27 @@ class GroupController extends _$GroupController {
       await ref.read(homeControllerProvider.notifier).refresh();
     }
   }
+
+  Future<void> updateGroup({
+    required String groupId,
+    String? name,
+    bool? isPublic,
+  }) async {
+    state = const AsyncLoading();
+
+    final repo = ref.read(groupRemoteRepositoryProvider);
+
+    state = await AsyncValue.guard(
+      () => repo.updateGroup(
+        groupId: groupId,
+        name: name,
+        isPublic: isPublic,
+      ),
+    );
+
+    final context = rootNavigatorKey.currentContext;
+    if (!state.hasError && context != null && context.mounted) {
+      unawaited(ref.read(homeControllerProvider.notifier).refresh());
+    }
+  }
 }

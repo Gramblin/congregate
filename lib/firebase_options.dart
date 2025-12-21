@@ -40,6 +40,16 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCot3LHEgpmovLOHTjd5DOi_g2KQ96-Zu4',
+    appId: '1:1022876601447:web:31e94a0c2f9eec11cc98c2',
+    messagingSenderId: '1022876601447',
+    projectId: 'congregate-13607',
+    authDomain: 'congregate-13607.firebaseapp.com',
+    storageBucket: 'congregate-13607.firebasestorage.app',
+    measurementId: 'G-57LG9L9KW3',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDSCXhRM-JSb76Kp_0hYXa4PPnFYcZksiY',
     appId: '1:1022876601447:android:eb1c55c9a1b4be4ecc98c2',
@@ -57,16 +67,6 @@ class DefaultFirebaseOptions {
     androidClientId: '1022876601447-572f99te954ldsrquheo8lsce3kavuhk.apps.googleusercontent.com',
     iosClientId: '1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go.apps.googleusercontent.com',
     iosBundleId: 'com.qubique.congregate',
-  );
-
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCot3LHEgpmovLOHTjd5DOi_g2KQ96-Zu4',
-    appId: '1:1022876601447:web:31e94a0c2f9eec11cc98c2',
-    messagingSenderId: '1022876601447',
-    projectId: 'congregate-13607',
-    authDomain: 'congregate-13607.firebaseapp.com',
-    storageBucket: 'congregate-13607.firebasestorage.app',
-    measurementId: 'G-57LG9L9KW3',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

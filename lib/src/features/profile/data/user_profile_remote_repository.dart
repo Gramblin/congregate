@@ -57,14 +57,10 @@ class UserProfileRemoteRepository {
 
       final result = await supabaseClient
           .from('user_profiles')
-          .upsert({
-            'user_id': userId,
-            ...updates,
-          })
+          .update(updates)
+          .eq('user_id', userId)
           .select()
           .maybeSingle();
-
-      log('result $result');
 
       return result == null ? null : UserProfile.fromJson(result);
     } catch (e, st) {

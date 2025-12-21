@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:congregate/src/features/profile/presentation/controllers/user_profile_notifier.dart';
@@ -79,7 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      log('prif $userProfile');
+      // log('prif $userProfile');
 
       // 6. Profile incomplete → setup
       final needsProfileSetup =

@@ -94,7 +94,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onChanged: (_) => setState(() => _hasChanges = true),
                   ),
                   gapH24,
-
                   // --- Real Name ---
                   Text(
                     'Real Name'.hardcoded,
@@ -111,7 +110,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onChanged: (_) => setState(() => _hasChanges = true),
                   ),
                   gapH24,
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -124,26 +122,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Switch.adaptive(
                         value: profile.showRealName,
                         onChanged: (value) async {
-                          try {
-                            await ref
-                                .read(userProfileProvider.notifier)
-                                .updateProfile(showRealName: value);
-                          } on Exception catch (e, st) {
-                            log('updateProfile(showRealName) error: $e\n$st');
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Failed to update visibility'),
-                                ),
-                              );
-                            }
-                          }
+                          await ref
+                              .read(userProfileProvider.notifier)
+                              .updateProfile(showRealName: value);
                         },
                       ),
                     ],
                   ),
                   gapH32,
-
                   // --- Share Button ---
                   SizedBox(
                     width: double.infinity,

@@ -12,7 +12,7 @@ class CreateGroupScreen extends ConsumerStatefulWidget {
 class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  String _visibility = 'private';
+  bool _isPublic = false; // default to private
 
   @override
   Widget build(BuildContext context) {
@@ -45,16 +45,17 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     value == null || value.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _visibility,
-                decoration: const InputDecoration(labelText: 'Visibility'),
-                items: const [
-                  DropdownMenuItem(value: 'private', child: Text('Private')),
-                  DropdownMenuItem(value: 'public', child: Text('Public')),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Public'),
+                  Switch(
+                    value: _isPublic,
+                    onChanged: (value) {
+                      setState(() => _isPublic = value);
+                    },
+                  ),
                 ],
-                onChanged: (value) {
-                  if (value != null) setState(() => _visibility = value);
-                },
               ),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -64,7 +65,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                         .read(groupControllerProvider.notifier)
                         .createGroup(
                           name: _nameController.text,
-                          isPublic: !(_visibility == 'private'),
+                          isPublic: _isPublic,
                         );
                   }
                 },

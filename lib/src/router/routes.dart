@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:congregate/src/features/create_group/presentation/view/create_group_screen.dart';
+import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
 import 'package:congregate/src/features/home/presentation/home_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/views/profile_screen.dart';
@@ -180,9 +181,7 @@ class ProfileRoute extends GoRouteData with $ProfileRoute {
   }
 }
 
-@TypedGoRoute<CreateGroupRoute>(
-  path: '/create-group',
-)
+@TypedGoRoute<CreateGroupRoute>(path: '/create-group')
 @immutable
 class CreateGroupRoute extends GoRouteData with $CreateGroupRoute {
   const CreateGroupRoute();
@@ -192,6 +191,41 @@ class CreateGroupRoute extends GoRouteData with $CreateGroupRoute {
     return kIsWeb
         ? const CupertinoPage(child: CreateGroupScreen(), name: 'CreateGroup')
         : const CupertinoPage(child: CreateGroupScreen(), name: 'CreateGroup');
+  }
+}
+
+@TypedGoRoute<GroupDetailsRoute>(path: '/group-details')
+@immutable
+class GroupDetailsRoute extends GoRouteData with $GroupDetailsRoute {
+  const GroupDetailsRoute({
+    required this.isPublic,
+    required this.groupId,
+    required this.groupName,
+  });
+
+  final String groupId;
+  final String groupName;
+  final bool isPublic;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return kIsWeb
+        ? CupertinoPage(
+            child: GroupDetailsScreen(
+              groupId: groupId,
+              groupName: groupName,
+              isPublic: isPublic,
+            ),
+            name: 'CreateGroup',
+          )
+        : CupertinoPage(
+            child: GroupDetailsScreen(
+              groupId: groupId,
+              groupName: groupName,
+              isPublic: isPublic,
+            ),
+            name: 'CreateGroup',
+          );
   }
 }
 

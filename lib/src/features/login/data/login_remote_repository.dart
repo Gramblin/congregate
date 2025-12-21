@@ -10,7 +10,7 @@ class LoginRemoteRepository {
   LoginRemoteRepository({required this.supabaseClient, required this.clientId})
     : googleSignIn = GoogleSignIn(
         clientId:
-            '1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go.apps.googleusercontent.com',
+            '1022876601447-tsunu79ppurr2if099ho7p5f09smh4pg.apps.googleusercontent.com',
       );
 
   final SupabaseClient supabaseClient;
@@ -43,6 +43,7 @@ class LoginRemoteRepository {
         accessToken: accessToken,
       );
     } catch (e) {
+      log('e is $e');
       throw Exception('LoginRemoteRepository Exception: $e');
     }
   }

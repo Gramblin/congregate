@@ -18,7 +18,7 @@ class CongregateApp extends ConsumerStatefulWidget {
 
 class CongregateAppState extends ConsumerState<CongregateApp> {
   late final StreamSubscription<Uri> sub;
-
+  StreamSubscription<String>? _tokenRefreshSub;
   final NotificationService notificationService = NotificationService();
 
   @override
@@ -35,19 +35,51 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
       ..setupInteractedMessage();
   }
 
-  @override
-  void dispose() {
-    sub.cancel();
-    super.dispose();
+  Future<void> _registerFcmTokenIfNeeded() async {
+    final client = ref.read(supabaseProvider).client;
+    final user = client.auth.currentUser;
+
+    if (user == null) return;
+
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
+      log('token is $token');
+      await client
+          .from('user_profiles')
+          .update({'fcm_token': token})
+          .eq('user_id', user.id);
+    }
+
+    _tokenRefreshSub ??= FirebaseMessaging.instance.onTokenRefresh.listen((
+      newToken,
+    ) async {
+      final currentUser = client.auth.currentUser;
+      if (currentUser == null) return;
+
+      log('new token is $token');
+
+      await client
+          .from('user_profiles')
+          .update({'fcm_token': newToken})
+          .eq('user_id', currentUser.id);
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     ref.read(supabaseProvider).client.auth.onAuthStateChange.listen((data) {
-      // log(data.session?.expiresAt.toString() ?? '');
-      if (data.event == AuthChangeEvent.userUpdated) {
-        log('user updated ${data.session?.user}');
+      final event = data.event;
+
+      if (event == AuthChangeEvent.signedIn ||
+          event == AuthChangeEvent.userUpdated ||
+          event == AuthChangeEvent.tokenRefreshed) {
+        _registerFcmTokenIfNeeded();
+        ref.read(routerProvider).refresh();
+      }
+
+      if (event == AuthChangeEvent.signedOut) {
         ref.read(routerProvider).refresh();
       }
     });
@@ -94,5 +126,12 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
       routerConfig: ref.watch(routerProvider),
       themeMode: ThemeMode.light,
     );
+  }
+
+  @override
+  void dispose() {
+    _tokenRefreshSub?.cancel();
+    sub.cancel();
+    super.dispose();
   }
 }

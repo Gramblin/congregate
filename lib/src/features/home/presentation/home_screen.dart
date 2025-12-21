@@ -45,9 +45,6 @@ class HomeScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.only(bottom: 120),
               children: [
-                // --------------------------
-                // 🔹 USER GROUPS SECTION
-                // --------------------------
                 const Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
@@ -63,16 +60,67 @@ class HomeScreen extends ConsumerWidget {
                   )
                 else
                   ...userGroups.map((group) {
-                    return ListTile(
-                      title: Text(group.name),
-                      subtitle: Text(group.isPublic ? 'Public' : 'Private'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          ref
-                              .read(groupControllerProvider.notifier)
-                              .removeGroup(group.id);
+                    final isAdmin = group.role == 'admin';
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isAdmin ? Colors.yellow.withOpacity(0.15) : null,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          GroupDetailsRoute(
+                            groupId: group.id,
+                            groupName: group.name,
+                            isPublic: group.isPublic,
+                          ).push<void>(context);
                         },
+                        leading: isAdmin
+                            ? const Icon(Icons.verified, color: Colors.amber)
+                            : const Icon(Icons.group_outlined),
+
+                        title: Text(group.name),
+                        subtitle: Text(
+                          group.isPublic
+                              ? 'Public • ${group.role}'
+                              : 'Private • ${group.role}',
+                        ),
+
+                        trailing: isAdmin
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
+                                tooltip: 'Delete Group',
+                                onPressed: () {
+                                  ref
+                                      .read(groupControllerProvider.notifier)
+                                      .removeGroup(group.id);
+                                },
+                              )
+                            : IconButton(
+                                icon: const Icon(
+                                  Icons.logout,
+                                  color: Colors.grey,
+                                ),
+                                tooltip: 'Leave Group',
+                                onPressed: () async {
+                                  await ref
+                                      .read(homeControllerProvider.notifier)
+                                      .leaveGroup(group.id);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Left ${group.name}'),
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
                     );
                   }),
@@ -102,10 +150,14 @@ class HomeScreen extends ConsumerWidget {
                       subtitle: const Text('Public'),
                       trailing: IconButton(
                         icon: const Icon(Icons.login),
-                        onPressed: () {
-                          // ref
-                          //     .read(groupControllerProvider.notifier)
-                          //     .joinGroup(group.id);
+                        onPressed: () async {
+                          await ref
+                              .read(homeControllerProvider.notifier)
+                              .joinGroup(group.id);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Joined ${group.name}!')),
+                          );
                         },
                       ),
                     );

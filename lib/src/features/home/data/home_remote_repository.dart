@@ -15,14 +15,17 @@ class HomeRemoteRepository {
     try {
       final response = await _client
           .from('group_members')
-          .select('groups(*)')
+          .select('groups(*), role')
           .eq('user_id', userId);
 
       final rawGroups = response as List;
 
-      return rawGroups
-          .map((e) => Group.fromJson(e['groups'] as Map<String, dynamic>))
-          .toList();
+      return rawGroups.map((row) {
+        final groupJson = row['groups'] as Map<String, dynamic>;
+        final role = row['role'] as String;
+
+        return Group.fromJson(groupJson).copyWith(role: role);
+      }).toList();
     } catch (e) {
       log('eee $e');
       throw Exception('HomeRemoteRepository Exception: $e');
@@ -57,6 +60,33 @@ class HomeRemoteRepository {
     } catch (e, st) {
       log('HomeRemoteRepository.fetchJoinableGroups Error: $e\n$st');
       throw Exception('HomeRemoteRepository Exception: $e');
+    }
+  }
+
+  Future<void> joinGroup(String groupId, String userId) async {
+    try {
+      await _client.from('group_members').insert({
+        'group_id': groupId,
+        'user_id': userId,
+        'role': 'member',
+        'show_real_name': false,
+      });
+    } catch (e) {
+      log('HomeRemoteRepository.joinGroup Error: $e');
+      throw Exception('Failed to join group: $e');
+    }
+  }
+
+  Future<void> leaveGroup(String groupId, String userId) async {
+    try {
+      await _client
+          .from('group_members')
+          .delete()
+          .eq('group_id', groupId)
+          .eq('user_id', userId);
+    } catch (e) {
+      log('HomeRemoteRepository.leaveGroup Error: $e');
+      throw Exception('Failed to leave group: $e');
     }
   }
 }

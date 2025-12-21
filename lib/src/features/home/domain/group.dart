@@ -12,6 +12,7 @@ abstract class Group with _$Group {
     @JsonKey(name: 'is_public') required bool isPublic,
     required String createdBy,
     required DateTime createdAt,
+    String? role, // NEW
   }) = _Group;
 
   factory Group.fromJson(Map<String, dynamic> json) {
