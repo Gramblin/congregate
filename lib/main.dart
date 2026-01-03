@@ -20,21 +20,6 @@ void main() async {
           child: const CongregateApp(),
         ),
       );
-
-      // await SentryFlutter.init(
-      //   (options) {
-      //     options
-      //       ..dsn =
-      //           'https://b5e9f65cdbb00fdf75a18f5d6ab1b1d8@o4509785979879424.ingest.de.sentry.io/4509785981911120'
-      //       ..sendDefaultPii = true;
-      //   },
-      //   appRunner: () => runApp(
-      //     UncontrolledProviderScope(
-      //       container: container,
-      //       child: const CongregateApp(),
-      //     ),
-      //   ),
-      // );
     },
     (error, stackTrace) {
       log(error.toString(), stackTrace: stackTrace);

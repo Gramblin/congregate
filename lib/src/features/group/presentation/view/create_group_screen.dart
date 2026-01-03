@@ -1,4 +1,4 @@
-import 'package:congregate/src/features/create_group/presentation/controller/group_controller.dart';
+import 'package:congregate/src/features/group/presentation/controller/group_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

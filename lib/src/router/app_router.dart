@@ -26,7 +26,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     // debugLogDiagnostics: true,
     observers: [AppRouterObserver(ref)],
     redirect: (context, state) {
-      // return '/home';
       final loggedIn = Supabase.instance.client.auth.currentUser != null;
 
       // 1. Skip redirects for alert dialogs
@@ -36,51 +35,32 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final uri = state.uri;
 
-      // 2. Handle deep links like suffah://game/{roomId}
-      if (uri.scheme == 'suffah' && uri.host == 'game') {
+      // 2. Handle deep links like congregate://invite/{inviteCode}
+      if (uri.scheme == 'congregate' && uri.host == 'invite') {
+        final inviteCode = uri.pathSegments.isNotEmpty
+            ? uri.pathSegments.first
+            : null;
+        if (inviteCode != null && state.uri.path != '/invite/$inviteCode') {
+          return '/invite/$inviteCode';
+        }
+      }
+
+      // 3. Handle deep links like congregate://group/{roomId}
+      if (uri.scheme == 'congregate' && uri.host == 'group') {
         final roomId = uri.pathSegments.isNotEmpty
             ? uri.pathSegments.first
             : null;
         if (roomId != null && state.uri.path != '/game/$roomId') {
-          // ref.read(gameControllerProvider.notifier).joinRoom(roomId);
           return '/home/game/$roomId';
         }
       }
 
-      // 3. Handle deep links like suffah://friend/{userId}/{username}
-      if (uri.scheme == 'suffah' && uri.host == 'friend') {
-        final segments = uri.pathSegments;
-        final userId = segments.isNotEmpty ? segments[0] : null;
-        final username = segments.length > 1 ? segments[1] : null;
-
-        if (userId != null && username != null) {
-          final path = '/friend/$userId/$username';
-          if (state.uri.path != path) {
-            return path;
-          }
-        }
-      }
-
-      // ✅ 4. Handle deep links like suffah://profile/{userId}
-      if (uri.scheme == 'suffah' && uri.host == 'profile') {
-        final userId = uri.pathSegments.isNotEmpty
-            ? uri.pathSegments.first
-            : null;
-
-        if (userId != null && state.uri.path != '/profile/$userId') {
-          return '/profile/$userId';
-        }
-      }
-
-      // 5. Not signed in → login
-
+      // 4. Not signed in → login
       if (loggedIn == false && !state.uri.path.startsWith('/login')) {
         return '/login';
       }
 
-      // log('prif $userProfile');
-
-      // 6. Profile incomplete → setup
+      // 5. Profile incomplete → setup
       final needsProfileSetup =
           userProfile == null ||
           userProfile.displayName.isEmpty ||

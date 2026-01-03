@@ -54,9 +54,22 @@
 				<string>Editor</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.googleusercontent.apps.1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go</string>
+					<string>
+						com.googleusercontent.apps.1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go</string>
 				</array>
 			</dict>
+			<!-- TODO: Test this! -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.qubique.congregate</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>congregate</string>
+				</array>
+			</dict>
+
 		</array>
 
 	</dict>

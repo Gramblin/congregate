@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:congregate/src/features/create_group/presentation/view/create_group_screen.dart';
+import 'package:congregate/src/features/group/presentation/view/create_group_screen.dart';
+import 'package:congregate/src/features/group/presentation/view/group_invite_screen.dart';
 import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
 import 'package:congregate/src/features/home/presentation/home_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
@@ -100,6 +101,27 @@ class HomeRoute extends GoRouteData with $HomeRoute {
     return Platform.isAndroid
         ? const MaterialPage(child: HomeScreen(), name: 'Home')
         : const CupertinoPage(child: HomeScreen(), name: 'Home');
+  }
+}
+
+@TypedGoRoute<GroupInviteRoute>(path: '/invite/:inviteCode')
+@immutable
+class GroupInviteRoute extends GoRouteData with $GroupInviteRoute {
+  const GroupInviteRoute({required this.inviteCode});
+
+  final String inviteCode;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return Platform.isAndroid
+        ? MaterialPage(
+            child: GroupInviteScreen(inviteCode: inviteCode),
+            name: 'GroupInvite',
+          )
+        : CupertinoPage(
+            child: GroupInviteScreen(inviteCode: inviteCode),
+            name: 'GroupInvite',
+          );
   }
 }
 
@@ -228,85 +250,3 @@ class GroupDetailsRoute extends GoRouteData with $GroupDetailsRoute {
           );
   }
 }
-
-// @immutable
-// class FriendsRoute extends GoRouteData {
-//   const FriendsRoute();
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(child: FriendsScreen(), name: 'Friends')
-//         : const CupertinoPage(child: FriendsScreen(), name: 'Friends');
-//   }
-// }
-
-// @TypedGoRoute<InfoDialogRoute>(path: '/dialog')
-// @immutable
-// class InfoDialogRoute extends GoRouteData {
-//   const InfoDialogRoute({this.dismissible = true});
-
-//   final bool dismissible;
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return CustomTransitionPage(
-//       name: 'InfoDialog',
-//       child: Dialog(
-//         shadowColor: Colors.transparent,
-//         backgroundColor: Colors.white,
-//         surfaceTintColor: Colors.white,
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadiusGeometry.circular(Sizes.p8),
-//         ),
-//         child: const SuffahDialogScreen(),
-//       ),
-//       barrierColor: Colors.black45,
-//       opaque: false,
-//       barrierDismissible: dismissible,
-//       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-//         final scaleTween = Tween(
-//           begin: 0.8,
-//           end: 1.toDouble(),
-//         ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut));
-//         final opacityTween = Tween(
-//           begin: 0.toDouble(),
-//           end: 1.toDouble(),
-//         ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut));
-
-//         return FadeTransition(
-//           opacity: opacityTween,
-//           child: ScaleTransition(scale: scaleTween, child: child),
-//         );
-//       },
-//     );
-//   }
-// }
-
-// @TypedGoRoute<LeaderboardRoute>(path: '/leaderboard')
-// @immutable
-// class LeaderboardRoute extends GoRouteData {
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(child: LeaderboardScreen(), name: 'Leaderboard')
-//         : const CupertinoPage(child: LeaderboardScreen(), name: 'Leaderboard');
-//   }
-// }
-
-// @TypedGoRoute<TestFunctionalitiesRoute>(path: '/test-screens')
-// @immutable
-// class TestFunctionalitiesRoute extends GoRouteData {
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? const CupertinoPage(
-//             child: TestFunctionalitiesScreen(),
-//             name: 'TestFunctionalities',
-//           )
-//         : const CupertinoPage(
-//             child: TestFunctionalitiesScreen(),
-//             name: 'TestFunctionalities',
-//           );
-//   }
-// }

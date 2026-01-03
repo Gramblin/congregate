@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:congregate/src/router/app_router.dart';
+import 'package:congregate/src/utils/deep_link_handler.dart';
 import 'package:congregate/src/utils/notifications_service.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -20,6 +21,7 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
   late final StreamSubscription<Uri> sub;
   StreamSubscription<String>? _tokenRefreshSub;
   final NotificationService notificationService = NotificationService();
+  DeepLinkHandler? _deepLinkHandler;
 
   @override
   void initState() {
@@ -33,6 +35,15 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
       // Run code to handle interacted messages in an async function
       // as initState() must not be async
       ..setupInteractedMessage();
+
+    _deepLinkHandler = DeepLinkHandler(ref);
+
+    // Initialize after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _deepLinkHandler?.initialize(context);
+      }
+    });
   }
 
   Future<void> _registerFcmTokenIfNeeded() async {
@@ -132,6 +143,7 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
   void dispose() {
     _tokenRefreshSub?.cancel();
     sub.cancel();
+    _deepLinkHandler?.dispose();
     super.dispose();
   }
 }

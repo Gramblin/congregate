@@ -1,4 +1,4 @@
-import 'package:congregate/src/features/create_group/data/group_remote_repository.dart';
+import 'package:congregate/src/features/group/data/group_remote_repository.dart';
 import 'package:congregate/src/features/group_details/domain/group_member.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

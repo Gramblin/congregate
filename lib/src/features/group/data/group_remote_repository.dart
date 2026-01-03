@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:congregate/src/features/group_details/domain/group_member.dart';
 import 'package:congregate/src/features/home/domain/group.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -12,8 +13,9 @@ import 'package:uuid/uuid.dart';
 part 'group_remote_repository.g.dart';
 
 class GroupRemoteRepository {
-  GroupRemoteRepository(this.client);
+  GroupRemoteRepository(this.client, this.messaging);
   final SupabaseClient client;
+  final FirebaseMessaging messaging;
 
   Future<Group> createGroup({
     required String name,
@@ -24,6 +26,7 @@ class GroupRemoteRepository {
       final groupId = const Uuid().v4();
       final topicId = 'group_$groupId';
 
+      // Create the group in Supabase
       final response = await client
           .from('groups')
           .insert({
@@ -35,6 +38,16 @@ class GroupRemoteRepository {
           })
           .select()
           .single();
+
+      // Subscribe the creator to the FCM topic
+      try {
+        await messaging.subscribeToTopic(topicId);
+        log('Successfully subscribed to topic: $topicId');
+      } on Exception catch (e) {
+        log('Failed to subscribe to FCM topic: $e');
+        // Note: Group is already created, so we don't throw here
+        // The user can be subscribed later or manually
+      }
 
       return Group.fromJson(response);
     } catch (e) {
@@ -48,6 +61,13 @@ class GroupRemoteRepository {
       final user = client.auth.currentUser;
       if (user == null) throw Exception('Not authenticated');
 
+      // Get the topic_id before deleting
+      final groupData = await client
+          .from('groups')
+          .select('topic_id')
+          .eq('id', groupId)
+          .maybeSingle();
+
       final result = await client
           .from('groups')
           .delete()
@@ -56,6 +76,17 @@ class GroupRemoteRepository {
 
       if (result.isEmpty) {
         throw Exception('No group deleted (maybe not owner or invalid id)');
+      }
+
+      // Unsubscribe from the FCM topic
+      if (groupData != null && groupData['topic_id'] != null) {
+        try {
+          await messaging.unsubscribeFromTopic(groupData['topic_id'] as String);
+          log('Successfully unsubscribed from topic: ${groupData['topic_id']}');
+        } on Exception catch (e) {
+          log('Failed to unsubscribe from FCM topic: $e');
+          // Don't throw - group is already deleted
+        }
       }
 
       return true;
@@ -98,7 +129,7 @@ class GroupRemoteRepository {
       }
 
       return Group.fromJson(result);
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       log('GroupRemoteRepository.updateGroup exception: $e\n$st');
       rethrow;
     }
@@ -137,9 +168,34 @@ class GroupRemoteRepository {
       throw Exception('Failed to fetch group members: $e');
     }
   }
+
+  /// Subscribe a user to a group's FCM topic
+  Future<void> subscribeToGroupTopic(String topicId) async {
+    try {
+      await messaging.subscribeToTopic(topicId);
+      log('Successfully subscribed to topic: $topicId');
+    } catch (e) {
+      log('Failed to subscribe to topic $topicId: $e');
+      rethrow;
+    }
+  }
+
+  /// Unsubscribe a user from a group's FCM topic
+  Future<void> unsubscribeFromGroupTopic(String topicId) async {
+    try {
+      await messaging.unsubscribeFromTopic(topicId);
+      log('Successfully unsubscribed from topic: $topicId');
+    } catch (e) {
+      log('Failed to unsubscribe from topic $topicId: $e');
+      rethrow;
+    }
+  }
 }
 
 @Riverpod(keepAlive: true)
 GroupRemoteRepository groupRemoteRepository(Ref ref) {
-  return GroupRemoteRepository(ref.watch(supabaseProvider).client);
+  return GroupRemoteRepository(
+    ref.watch(supabaseProvider).client,
+    FirebaseMessaging.instance,
+  );
 }

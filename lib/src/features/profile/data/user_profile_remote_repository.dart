@@ -57,12 +57,12 @@ class UserProfileRemoteRepository {
 
       final result = await supabaseClient
           .from('user_profiles')
-          .update(updates)
-          .eq('user_id', userId)
+          .update(updates) // ✅ Changed from upsert to update
+          .eq('user_id', userId) // ✅ Added filter
           .select()
-          .maybeSingle();
+          .single();
 
-      return result == null ? null : UserProfile.fromJson(result);
+      return UserProfile.fromJson(result);
     } catch (e, st) {
       log('UserProfileRemoteRepository.updateProfile exception: $e\n$st');
       rethrow;

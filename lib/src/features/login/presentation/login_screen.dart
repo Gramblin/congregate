@@ -59,6 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: Sizes.p48,
                           ),
+                          textAlign: .center,
                         ),
                         gapH32,
 
@@ -70,9 +71,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     )
                                     .logInUsingGoogle
                               : null,
-                          child: const Text(
-                            'Sign in With X',
-                            style: TextStyle(),
+                          child: Text(
+                            'Sign in With Google'.hardcoded,
                             textAlign: TextAlign.center,
                           ),
                         ),

@@ -1,3 +1,4 @@
+import 'package:congregate/src/features/group/data/group_membership_remote_repository.dart';
 import 'package:congregate/src/features/home/data/home_remote_repository.dart';
 import 'package:congregate/src/features/home/domain/home_state.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
@@ -70,14 +71,22 @@ class HomeController extends _$HomeController {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    final repo = ref.read(homeRemoteRepositoryProvider);
+    final homeRepository = ref.read(homeRemoteRepositoryProvider);
+    final groupMembershipRepository = ref.read(
+      groupMembershipRepositoryProvider,
+    );
 
     // 1. Insert into group_members
-    await repo.joinGroup(groupId, user.id);
+    await groupMembershipRepository.joinGroup(
+      groupId: groupId,
+      userId: user.id,
+    );
 
     // 2. Refresh user groups + joinable groups
-    final updatedUserGroups = await repo.fetchUserGroups(user.id);
-    final updatedJoinableGroups = await repo.fetchJoinableGroups(user.id);
+    final updatedUserGroups = await homeRepository.fetchUserGroups(user.id);
+    final updatedJoinableGroups = await homeRepository.fetchJoinableGroups(
+      user.id,
+    );
 
     // 3. Update UI state
     state = AsyncData(
@@ -93,14 +102,15 @@ class HomeController extends _$HomeController {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    final repo = ref.read(homeRemoteRepositoryProvider);
+    final groupMembershipRepo = ref.read(groupMembershipRepositoryProvider);
+    final homeRepo = ref.read(homeRemoteRepositoryProvider);
 
     // 1. Leave the group
-    await repo.leaveGroup(groupId, user.id);
+    await groupMembershipRepo.leaveGroup(groupId: groupId, userId: user.id);
 
     // 2. Reload both lists
-    final updatedUserGroups = await repo.fetchUserGroups(user.id);
-    final updatedJoinableGroups = await repo.fetchJoinableGroups(user.id);
+    final updatedUserGroups = await homeRepo.fetchUserGroups(user.id);
+    final updatedJoinableGroups = await homeRepo.fetchJoinableGroups(user.id);
 
     // 3. Update state
     state = AsyncData(

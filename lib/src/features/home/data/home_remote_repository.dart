@@ -62,33 +62,6 @@ class HomeRemoteRepository {
       throw Exception('HomeRemoteRepository Exception: $e');
     }
   }
-
-  Future<void> joinGroup(String groupId, String userId) async {
-    try {
-      await _client.from('group_members').insert({
-        'group_id': groupId,
-        'user_id': userId,
-        'role': 'member',
-        'show_real_name': false,
-      });
-    } catch (e) {
-      log('HomeRemoteRepository.joinGroup Error: $e');
-      throw Exception('Failed to join group: $e');
-    }
-  }
-
-  Future<void> leaveGroup(String groupId, String userId) async {
-    try {
-      await _client
-          .from('group_members')
-          .delete()
-          .eq('group_id', groupId)
-          .eq('user_id', userId);
-    } catch (e) {
-      log('HomeRemoteRepository.leaveGroup Error: $e');
-      throw Exception('Failed to leave group: $e');
-    }
-  }
 }
 
 @Riverpod(keepAlive: true)

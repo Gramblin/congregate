@@ -44,7 +44,7 @@ run_flavorizr_android:
 deep_link_android:
 	adb shell 'am start -a android.intent.action.VIEW \
     -c android.intent.category.BROWSABLE \
-    -d "https://qubique.io/friend/aaa/bbb"' \
+    -d "congregate://invite/TSQIAHT7"' \
     com.qubique.suffah.dev
 
 deep_link_ios:

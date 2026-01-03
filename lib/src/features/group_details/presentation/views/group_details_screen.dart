@@ -1,5 +1,9 @@
-import 'package:congregate/src/features/create_group/presentation/controller/group_controller.dart';
+import 'package:congregate/src/features/group/data/group_events_repository.dart';
+import 'package:congregate/src/features/group/presentation/controller/group_controller.dart';
 import 'package:congregate/src/features/group_details/presentation/controllers/group_members_provider.dart';
+import 'package:congregate/src/features/group_details/presentation/views/create_event_dialog.dart';
+import 'package:congregate/src/features/group_details/presentation/views/event_card.dart';
+import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,62 +27,77 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
   late TextEditingController _nameController;
   late bool _isPublic;
   final _formKey = GlobalKey<FormState>();
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.groupName);
     _isPublic = widget.isPublic;
+    _checkAdminStatus();
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
+  Future<void> _checkAdminStatus() async {
+    final members = await ref.read(groupMembersProvider(widget.groupId).future);
+    final userId = ref.read(supabaseProvider).client.auth.currentUser?.id;
+
+    if (userId != null && mounted) {
+      final currentMember = members.firstWhere(
+        (m) => m.userId == userId,
+        orElse: () => members.first,
+      );
+      setState(() {
+        _isAdmin = currentMember.role == 'admin';
+      });
+    }
   }
 
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
 
-    try {
-      // Call your repository/controller method to update the group
-      await ref
-          .read(groupControllerProvider.notifier)
-          .updateGroup(
-            name: _nameController.text,
-            isPublic: _isPublic,
-            groupId: widget.groupId,
-          );
+    await ref
+        .read(groupControllerProvider.notifier)
+        .updateGroup(
+          name: _nameController.text,
+          isPublic: _isPublic,
+          groupId: widget.groupId,
+        );
+  }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group updated successfully')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update group: $e')),
-      );
-    }
+  void _showCreateEventDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => CreateEventDialog(
+        groupId: widget.groupId,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final asyncMembers = ref.watch(
-      groupMembersProvider(widget.groupId),
-    );
+    final asyncMembers = ref.watch(groupMembersProvider(widget.groupId));
+    final asyncEvents = ref.watch(groupEventsProvider(widget.groupId));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.groupName),
-        actions: [
-          IconButton(
-            onPressed: _saveChanges,
-            icon: const Icon(Icons.save),
-          ),
-        ],
+        actions: _isAdmin
+            ? [
+                IconButton(
+                  onPressed: _saveChanges,
+                  icon: const Icon(Icons.save),
+                ),
+              ]
+            : null,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateEventDialog,
+        icon: const Icon(Icons.add),
+        label: const Text('Create Prayer Event'),
       ),
       body: asyncMembers.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('❌ $e')),
+        error: (e, _) => Center(child: Text('$e')),
         data: (members) {
           final admins = members.where((m) => m.role == 'admin').toList();
           final regularUsers = members
@@ -126,6 +145,44 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                 ),
               ),
 
+              // Upcoming Events Section
+              const Text(
+                'Upcoming Prayer Events',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              asyncEvents.when(
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (e, _) => Text('Error loading events: $e'),
+                data: (events) {
+                  if (events.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        'No upcoming events. Create one!',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: events
+                        .map(
+                          (event) => EventCard(
+                            event: event,
+                            groupId: widget.groupId,
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
+              ),
+              const Divider(height: 32),
+
               // Admins section
               const Text(
                 'Admins',
@@ -157,5 +214,11 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 }

@@ -1,4 +1,4 @@
-import 'package:congregate/src/features/create_group/presentation/controller/group_controller.dart';
+import 'package:congregate/src/features/group/presentation/controller/group_controller.dart';
 import 'package:congregate/src/features/home/presentation/controller/home_controller.dart';
 import 'package:congregate/src/features/login/presentation/controller/login_controller.dart';
 import 'package:congregate/src/router/routes.dart';
