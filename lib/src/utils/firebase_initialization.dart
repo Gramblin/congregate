@@ -42,7 +42,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   debugPrint('📬 Background message received: ${message.messageId}');
 
-  // Get title and body from data (since we're sending data-only messages)
+  if (message.data.isEmpty || message.data['type'] != 'prayer_event') {
+    debugPrint('⚠️ Ignoring invalid background message');
+    return;
+  }
+
+  // ✅ NEW: Don't notify the event creator (requires initializing Supabase)
+  // Note: This requires Supabase to be initialized in background
+  // For now, we'll handle this on the backend instead
+
   final title =
       message.data['title'] as String? ??
       message.notification?.title ??
@@ -50,12 +58,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final body =
       message.data['body'] as String? ?? message.notification?.body ?? '';
 
-  if (message.data.isEmpty || message.data['type'] != 'prayer_event') {
-    debugPrint('⚠️ Ignoring invalid background message');
-    return;
-  }
-
-  // Show local notification with action buttons
   await main_initialization_utils.flutterLocalNotificationsPlugin.show(
     message.hashCode,
     title,

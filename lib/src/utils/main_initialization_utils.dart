@@ -244,7 +244,7 @@ class MainInitializationUtils {
       // FILTER: Ignore messages without proper data
       if (message.data.isEmpty || message.data['type'] == null) {
         debugPrint('⚠️ Ignoring message with empty or invalid data');
-        return; // Don't show notification for invalid messages
+        return;
       }
 
       // Only process prayer_event type notifications
@@ -253,7 +253,16 @@ class MainInitializationUtils {
         return;
       }
 
-      // Get title and body from data (your backend sends data-only messages)
+      // ✅ NEW: Don't notify the event creator
+      final createdBy = message.data['created_by'] as String?;
+      final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+      if (createdBy != null && createdBy == currentUserId) {
+        debugPrint('⚠️ Ignoring notification - you created this event');
+        return;
+      }
+
+      // Get title and body from data
       final title = message.data['title'] as String? ?? 'Prayer Notification';
       final body = message.data['body'] as String? ?? '';
 
@@ -298,9 +307,6 @@ class MainInitializationUtils {
         ),
         payload: jsonEncode(message.data),
       );
-
-      // Also call your existing handler
-      // ref.read(fcmNotificationServiceProvider).handleForegroundMessage(message);
     });
   }
 
@@ -455,6 +461,7 @@ class MainInitializationUtils {
             'Prayer Event Notifications',
             importance: Importance.low,
             priority: Priority.low,
+            playSound: false,
           ),
         ),
       );

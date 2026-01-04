@@ -17,7 +17,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Groups'),
+        title: const Text('Congregate'),
         leading: IconButton(
           icon: const Icon(Icons.account_circle_outlined),
           onPressed: () => const ProfileRoute().push<void>(context),

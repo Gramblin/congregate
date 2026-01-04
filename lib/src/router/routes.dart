@@ -6,6 +6,7 @@ import 'package:congregate/src/features/group_details/presentation/views/create_
 import 'package:congregate/src/features/group_details/presentation/views/edit_group_details_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/event_attendees_list_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
+import 'package:congregate/src/features/group_details/presentation/views/share_private_group_sheet.dart';
 import 'package:congregate/src/features/home/presentation/view/home_screen.dart';
 import 'package:congregate/src/features/home/presentation/view/join_group_sheet.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
@@ -241,6 +242,29 @@ class JoinGroupModalSheetRoute extends GoRouteData
       swipeDismissible: true,
       child: const JoinGroupSheet(),
       name: 'JoinGroup',
+      viewportPadding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+      ),
+    );
+  }
+}
+
+@TypedGoRoute<SharePrivateGroupSheetRoute>(path: '/share-private-group')
+@immutable
+class SharePrivateGroupSheetRoute extends GoRouteData
+    with $SharePrivateGroupSheetRoute {
+  const SharePrivateGroupSheetRoute({
+    required this.groupId,
+  });
+
+  final String groupId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return ModalSheetPage(
+      swipeDismissible: true,
+      child: SharePrivateGroupSheet(groupId: groupId),
+      name: 'ShareGroup',
       viewportPadding: EdgeInsets.only(
         top: MediaQuery.viewPaddingOf(context).top,
       ),

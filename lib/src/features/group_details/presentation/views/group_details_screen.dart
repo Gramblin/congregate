@@ -1,6 +1,5 @@
 import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
-import 'package:congregate/src/features/group/presentation/controller/group_controller.dart';
 import 'package:congregate/src/features/group_details/presentation/controllers/group_members_provider.dart';
 import 'package:congregate/src/features/group_details/presentation/views/event_card.dart';
 import 'package:congregate/src/router/routes.dart';
@@ -72,9 +71,9 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
             ? [
                 IconButton(
                   icon: const Icon(Icons.share),
-                  onPressed: () => ref
-                      .read(groupControllerProvider.notifier)
-                      .createAndShareInvite(groupId: widget.groupId),
+                  onPressed: () => SharePrivateGroupSheetRoute(
+                    groupId: widget.groupId,
+                  ).push<void>(context),
                 ),
                 IconButton(
                   onPressed: () {
