@@ -25,11 +25,15 @@ class GroupInvitationsRepository {
   /// Create a new group invitation
   Future<GroupInvitation> createInvitation({
     required String groupId,
-    bool singleUse = true,
+    int maxUses = 1, // Default to single-use
     DateTime? expiresAt,
-    int? maxUses,
   }) async {
     try {
+      // Validate max uses
+      if (maxUses < 1) {
+        throw Exception('Max uses must be at least 1');
+      }
+
       // Generate unique invite code
       String inviteCode;
       var isUnique = false;
@@ -52,8 +56,8 @@ class GroupInvitationsRepository {
             'group_id': groupId,
             'invite_code': inviteCode,
             'created_by': userId,
-            'single_use': singleUse,
-            'expires_at': expiresAt?.toIso8601String(),
+            'single_use': maxUses == 1, // Automatically set based on maxUses
+            'expires_at': expiresAt?.toUtc().toIso8601String(),
             'max_uses': maxUses,
             'is_active': true,
           })

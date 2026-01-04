@@ -17,51 +17,65 @@ class GroupEventController extends _$GroupEventController {
   Future<void> createEventAndNotify({
     required String groupId,
     required String prayerType,
-    required String prayerTime,
+    required DateTime prayerDateTime,
     required String prayerPlace,
-    required DateTime eventDate,
-    String? note, // Add this optional parameter
+    String? note,
   }) async {
     state = const AsyncLoading();
 
     final userId = ref.read(supabaseProvider).client.auth.currentUser?.id;
     if (userId == null) throw Exception('User not logged in');
 
+    print('🔵 Starting createEventAndNotify');
+    print('🔵 Prayer DateTime: $prayerDateTime');
+    print('🔵 Prayer DateTime UTC: ${prayerDateTime.toUtc()}');
+
     state = await AsyncValue.guard(() async {
-      // 1. Create the event in database
-      final repo = ref.read(groupEventsRepositoryProvider);
-      final event = await repo.createEvent(
-        groupId: groupId,
-        userId: userId,
-        prayerType: prayerType,
-        prayerTime: prayerTime,
-        prayerPlace: prayerPlace,
-        eventDate: eventDate,
-        note: note, // Pass the note
-      );
+      try {
+        // 1. Create the event in database
+        print('🔵 Step 1: Creating event in database...');
+        final repo = ref.read(groupEventsRepositoryProvider);
+        final event = await repo.createEvent(
+          groupId: groupId,
+          userId: userId,
+          prayerType: prayerType,
+          prayerDateTime: prayerDateTime,
+          prayerPlace: prayerPlace,
+          note: note,
+        );
+        print('✅ Event created: ${event.id}');
 
-      // 2. Auto-mark creator as attending
-      await repo.markAttendance(
-        eventId: event.id,
-        userId: userId,
-        status: 'going',
-      );
+        // 2. Auto-mark creator as attending
+        print('🔵 Step 2: Marking attendance...');
+        await repo.markAttendance(
+          eventId: event.id,
+          userId: userId,
+          status: 'going',
+        );
+        print('✅ Attendance marked');
 
-      // 3. Send FCM notification via edge function
-      final fcmService = ref.read(fcmNotificationRemoteRepositoryProvider);
-      await fcmService.sendPrayerEventNotification(
-        groupId: groupId,
-        prayerType: prayerType,
-        prayerTime: prayerTime,
-        eventId: event.id,
-        prayerPlace: prayerPlace,
-        eventDate: eventDate,
-        note: note, // Pass the note
-      );
+        // 3. Send FCM notification via edge function
+        print('🔵 Step 3: Sending notification...');
+        final fcmService = ref.read(fcmNotificationRemoteRepositoryProvider);
+        await fcmService.sendPrayerEventNotification(
+          groupId: groupId,
+          prayerType: prayerType,
+          prayerDateTime: prayerDateTime,
+          eventId: event.id,
+          prayerPlace: prayerPlace,
+          note: note,
+        );
+        print('✅ Notification sent');
 
-      // 4. Refresh the events list (check if still mounted)
-      if (ref.mounted) {
-        ref.invalidate(groupEventsProvider(groupId));
+        // 4. Refresh the events list
+        if (ref.mounted) {
+          ref.refresh(groupEventsProvider(groupId).future);
+        }
+        print('✅ Events list refreshed');
+      } catch (e, stack) {
+        print('❌ Error in createEventAndNotify: $e');
+        print('❌ Stack trace: $stack');
+        rethrow;
       }
     });
   }

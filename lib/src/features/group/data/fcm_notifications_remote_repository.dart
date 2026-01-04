@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,35 +12,27 @@ class FcmNotificationsRemoteRepository {
   Future<void> sendPrayerEventNotification({
     required String groupId,
     required String prayerType,
+    required DateTime prayerDateTime,
     required String eventId,
-    required String prayerTime,
     required String prayerPlace,
-    required DateTime eventDate,
-    String? note, // Add this optional parameter
+    String? note,
   }) async {
-    try {
-      final response = await client.functions.invoke(
-        'send-prayer-notification',
-        body: {
-          'groupId': groupId,
-          'prayerType': prayerType,
-          'eventId': eventId,
-          'prayerTime': prayerTime,
-          'prayerPlace': prayerPlace,
-          'eventDate': eventDate.toIso8601String(),
-          if (note != null) 'note': note, // Include note if present
-        },
-      );
+    final response = await client.functions.invoke(
+      'send-prayer-notification',
+      body: {
+        'groupId': groupId,
+        'prayerType': prayerType,
+        'prayerDateTime': prayerDateTime
+            .toUtc()
+            .toIso8601String(), // Send as UTC ISO string
+        'eventId': eventId,
+        'prayerPlace': prayerPlace,
+        if (note != null) 'note': note,
+      },
+    );
 
-      if (response.status != 200) {
-        log('Failed to send notification: ${response.data}');
-        throw Exception('Failed to send notification: ${response.data}');
-      }
-
-      log('✅ Notification sent successfully via edge function');
-    } catch (e, st) {
-      log('FcmNotificationService.sendPrayerEventNotification error: $e\n$st');
-      rethrow;
+    if (response.status != 200) {
+      throw Exception('Failed to send notification');
     }
   }
 }

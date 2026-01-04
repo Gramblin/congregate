@@ -10,9 +10,8 @@ abstract class GroupEvent with _$GroupEvent {
     @JsonKey(name: 'group_id') required String groupId,
     @JsonKey(name: 'created_by') required String createdBy,
     @JsonKey(name: 'prayer_type') required String prayerType,
-    @JsonKey(name: 'prayer_time') required String prayerTime,
+    @JsonKey(name: 'prayer_datetime') required DateTime prayerDateTime,
     @JsonKey(name: 'prayer_place') required String prayerPlace,
-    @JsonKey(name: 'event_date') required String eventDate,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'note') String? note,
   }) = _GroupEvent;

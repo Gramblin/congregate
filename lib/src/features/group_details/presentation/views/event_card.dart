@@ -106,7 +106,7 @@ class _EventCardState extends ConsumerState<EventCard> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Time: ${widget.event.prayerTime}'),
+                  Text('Time: ${widget.event.prayerDateTime}'),
                   Text('Location: ${widget.event.prayerPlace}'),
                   gapH4,
                   if (widget.event.note != null)

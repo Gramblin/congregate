@@ -54,13 +54,14 @@ class _CreateEventBottomSheetState
   }
 
   void _setTimePreset(int minutes, String presetKey) {
-    final now = TimeOfDay.now();
-    final newTime = TimeOfDay(
-      hour: (now.hour + (now.minute + minutes) ~/ 60) % 24,
-      minute: (now.minute + minutes) % 60,
-    );
+    final now = DateTime.now();
+    final futureTime = now.add(Duration(minutes: minutes));
+
     setState(() {
-      _selectedTime = newTime;
+      _selectedTime = TimeOfDay(
+        hour: futureTime.hour,
+        minute: futureTime.minute,
+      );
       _selectedTimePreset = presetKey;
     });
   }
@@ -68,38 +69,38 @@ class _CreateEventBottomSheetState
   Future<void> _createEvent() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (!_isNextDayPrayer()) {
-      final now = TimeOfDay.now();
-      final selectedMinutes = _selectedTime.hour * 60 + _selectedTime.minute;
-      final currentMinutes = now.hour * 60 + now.minute;
-
-      if (selectedMinutes < currentMinutes) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cannot schedule prayer in the past'.hardcoded),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-    }
-
-    final timeString =
-        '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
-
-    // Calculate the event date
+    // Build the complete prayer datetime in local timezone
+    final now = DateTime.now();
     final eventDate = _isNextDayPrayer()
-        ? DateTime.now().add(const Duration(days: 1))
-        : DateTime.now();
+        ? DateTime(now.year, now.month, now.day + 1)
+        : DateTime(now.year, now.month, now.day);
+
+    final prayerDateTime = DateTime(
+      eventDate.year,
+      eventDate.month,
+      eventDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    // Validate it's not in the past
+    if (prayerDateTime.isBefore(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cannot schedule prayer in the past'.hardcoded),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     await ref
         .read(groupEventControllerProvider.notifier)
         .createEventAndNotify(
           groupId: widget.groupId,
           prayerType: _selectedPrayerType.value,
-          prayerTime: timeString,
+          prayerDateTime: prayerDateTime, // Send complete datetime
           prayerPlace: _placeController.text.trim(),
-          eventDate: eventDate,
           note: _noteController.text.trim().isEmpty
               ? null
               : _noteController.text.trim(),

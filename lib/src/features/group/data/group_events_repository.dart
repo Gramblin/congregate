@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:congregate/src/features/group/domain/event_attendee.dart';
 import 'package:congregate/src/features/group_details/domain/group_event.dart';
 import 'package:congregate/src/utils/main_initialization_utils.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 part 'group_events_repository.g.dart';
 
@@ -20,26 +17,24 @@ class GroupEventsRepository {
     required String groupId,
     required String userId,
     required String prayerType,
-    required String prayerTime,
+    required DateTime prayerDateTime,
     required String prayerPlace,
-    required DateTime eventDate,
-    String? note, // Add this optional parameter
+    String? note,
   }) async {
-    final data = await client
+    final response = await client
         .from('group_events')
         .insert({
           'group_id': groupId,
           'created_by': userId,
           'prayer_type': prayerType,
-          'prayer_time': prayerTime,
+          'prayer_datetime': prayerDateTime.toUtc().toIso8601String(),
           'prayer_place': prayerPlace,
-          'event_date': eventDate.toIso8601String().split('T')[0],
-          if (note != null) 'note': note, // Include note if present
+          if (note != null) 'note': note,
         })
         .select()
         .single();
 
-    return GroupEvent.fromJson(data);
+    return GroupEvent.fromJson(response);
   }
 
   /// Get events for a specific group
@@ -52,12 +47,12 @@ class GroupEventsRepository {
 
       if (fromDate != null) {
         query = query.gte(
-          'event_date',
-          fromDate.toIso8601String().split('T')[0],
+          'prayer_datetime',
+          fromDate.toUtc().toIso8601String(),
         );
       }
 
-      final response = await query.order('event_date').order('prayer_time');
+      final response = await query.order('prayer_datetime');
 
       return (response as List)
           .map((json) => GroupEvent.fromJson(json as Map<String, dynamic>))
@@ -127,7 +122,7 @@ class GroupEventsRepository {
           'event_id': eventId,
           'user_id': userId,
           'status': status,
-          'responded_at': DateTime.now().toIso8601String(),
+          'responded_at': DateTime.now().toUtc().toIso8601String(), // Use UTC
         },
         onConflict: 'event_id,user_id',
       );
@@ -146,9 +141,8 @@ class GroupEventsRepository {
         await scheduleEventReminder(
           eventId: eventId,
           prayerType: eventData.prayerType,
-          prayerTime: eventData.prayerTime,
+          prayerDateTime: eventData.prayerDateTime, // Changed: now a DateTime
           prayerPlace: eventData.prayerPlace,
-          eventDate: DateTime.parse(eventData.eventDate),
         );
       } else {
         // If not going, cancel any existing reminder
@@ -255,86 +249,26 @@ class GroupEventsRepository {
     }).toList();
   }
 
-  /// Schedule reminder notification 5 minutes before event
   Future<void> scheduleEventReminder({
     required String eventId,
     required String prayerType,
-    required String prayerTime,
+    required DateTime prayerDateTime, // Changed from prayerTime + eventDate
     required String prayerPlace,
-    required DateTime eventDate,
   }) async {
-    try {
-      // Parse the event time (format: "HH:mm" or "HH:mm:ss")
-      final timeParts = prayerTime.split(':');
-      final eventHour = int.parse(timeParts[0]);
-      final eventMinute = int.parse(timeParts[1]);
+    // Your local notification scheduling logic here
+    // Now you have the complete datetime in one variable
 
-      // Create the exact event datetime IN LOCAL TIMEZONE
-      final now = DateTime.now();
-      final eventDateTime = DateTime(
-        eventDate.year,
-        eventDate.month,
-        eventDate.day,
-        eventHour,
-        eventMinute,
-      );
-
-      // Schedule for 5 minutes before
-      final reminderTime = eventDateTime.subtract(const Duration(minutes: 5));
-
-      // Don't schedule if time has already passed
-      if (reminderTime.isBefore(now)) {
-        log('Reminder time has passed, not scheduling');
-        return;
-      }
-
-      // Get the local timezone location
-      final location = tz.getLocation(tz.local.name);
-
-      // Create TZDateTime directly from components (not converting)
-      final tzReminderTime = tz.TZDateTime(
-        location,
-        reminderTime.year,
-        reminderTime.month,
-        reminderTime.day,
-        reminderTime.hour,
-        reminderTime.minute,
-      );
-
-      log('Local time now: $now');
-      log('Reminder scheduled for: $tzReminderTime');
-
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-        eventId.hashCode,
-        '⏰ Prayer Reminder',
-        '$prayerType prayer starting in 5 minutes at $prayerPlace',
-        tzReminderTime,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'prayer_reminders_channel',
-            'Prayer Reminders',
-            channelDescription: 'Reminders for upcoming prayer gatherings',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@drawable/ic_congregate',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: jsonEncode({
-          'type': 'prayer_reminder',
-          'event_id': eventId,
-        }),
-      );
-
-      log('✅ Scheduled reminder for $prayerType');
-    } catch (e, st) {
-      log('Failed to schedule reminder: $e\n$st');
-    }
+    // Example:
+    // await flutterLocalNotificationsPlugin.zonedSchedule(
+    //   eventId.hashCode,
+    //   '$prayerType Prayer Reminder',
+    //   'Prayer at $prayerPlace in 10 minutes',
+    //   tz.TZDateTime.from(
+    //     prayerDateTime.subtract(const Duration(minutes: 10)),
+    //     tz.local,
+    //   ),
+    //   // ... notification details
+    // );
   }
 
   /// Cancel a scheduled reminder

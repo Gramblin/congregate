@@ -229,11 +229,15 @@ class GroupController extends _$GroupController {
     }
   }
 
-  Future<void> createAndShareInvite({required String groupId}) async {
+  Future<void> createAndShareInvite({
+    required String groupId,
+    int maxUses = 1,
+  }) async {
     final repo = ref.read(groupInvitationsRepositoryProvider);
 
     final invitation = await repo.createInvitation(
       groupId: groupId,
+      maxUses: maxUses,
     );
 
     // final inviteLink = 'congregate://invite/${invitation.inviteCode}';
