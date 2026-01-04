@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:congregate/src/features/group/data/fcm_notifications_remote_repository.dart';
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
+import 'package:congregate/src/features/group/domain/event_attendee.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,6 +19,7 @@ class GroupEventController extends _$GroupEventController {
     required String prayerType,
     required String prayerTime,
     required String prayerPlace,
+    required DateTime eventDate, // Add this parameter
   }) async {
     state = const AsyncLoading();
 
@@ -33,6 +35,7 @@ class GroupEventController extends _$GroupEventController {
         prayerType: prayerType,
         prayerTime: prayerTime,
         prayerPlace: prayerPlace,
+        eventDate: eventDate, // Pass the date
       );
 
       // 2. Auto-mark creator as attending
@@ -50,6 +53,7 @@ class GroupEventController extends _$GroupEventController {
         prayerTime: prayerTime,
         eventId: event.id,
         prayerPlace: prayerPlace,
+        eventDate: eventDate, // Pass the date
       );
 
       // 4. Refresh the events list (check if still mounted)
@@ -73,4 +77,10 @@ class GroupEventController extends _$GroupEventController {
       }
     });
   }
+}
+
+@riverpod
+Future<List<EventAttendee>> eventAttendees(Ref ref, String eventId) async {
+  final repo = ref.watch(groupEventsRepositoryProvider);
+  return repo.getEventAttendeesList(eventId);
 }

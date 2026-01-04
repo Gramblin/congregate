@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:congregate/src/features/group/presentation/view/create_group_screen.dart';
 import 'package:congregate/src/features/group/presentation/view/group_invite_screen.dart';
+import 'package:congregate/src/features/group_details/presentation/views/create_event_sheet.dart';
+import 'package:congregate/src/features/group_details/presentation/views/edit_group_details_sheet.dart';
+import 'package:congregate/src/features/group_details/presentation/views/event_attendees_list.dart';
 import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
 import 'package:congregate/src/features/home/presentation/home_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
@@ -11,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smooth_sheets/smooth_sheets.dart';
 
 part 'routes.g.dart';
 
@@ -248,5 +252,77 @@ class GroupDetailsRoute extends GoRouteData with $GroupDetailsRoute {
             ),
             name: 'CreateGroup',
           );
+  }
+}
+
+@TypedGoRoute<CreateEventModalSheetRoute>(path: '/create-event-modal')
+@immutable
+class CreateEventModalSheetRoute extends GoRouteData
+    with $CreateEventModalSheetRoute {
+  const CreateEventModalSheetRoute({required this.groupId});
+
+  final String groupId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return ModalSheetPage(
+      swipeDismissible: true,
+      child: CreateEventBottomSheet(groupId: groupId),
+      viewportPadding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+      ),
+    );
+  }
+}
+
+@TypedGoRoute<EditGroupDetailsModalSheetRoute>(
+  path: '/edit-group-details-modal',
+)
+@immutable
+class EditGroupDetailsModalSheetRoute extends GoRouteData
+    with $EditGroupDetailsModalSheetRoute {
+  const EditGroupDetailsModalSheetRoute({
+    required this.groupId,
+    required this.groupName,
+    required this.isPublic,
+  });
+
+  final String groupId;
+  final String groupName;
+  final bool isPublic;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return ModalSheetPage(
+      swipeDismissible: true,
+      child: EditGroupDetailsSheet(
+        groupId: groupId,
+        groupName: groupName,
+        isPublic: isPublic,
+      ),
+      viewportPadding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+      ),
+    );
+  }
+}
+
+@TypedGoRoute<EventAttendiesListModalSheetRoute>(path: '/attendees-list')
+@immutable
+class EventAttendiesListModalSheetRoute extends GoRouteData
+    with $EventAttendiesListModalSheetRoute {
+  const EventAttendiesListModalSheetRoute({required this.eventId});
+
+  final String eventId;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return ModalSheetPage(
+      swipeDismissible: true,
+      child: EventAttendeesList(eventId: eventId),
+      viewportPadding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+      ),
+    );
   }
 }

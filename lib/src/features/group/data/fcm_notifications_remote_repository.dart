@@ -17,6 +17,7 @@ class FcmNotificationsRemoteRepository {
     required String eventId,
     required String prayerTime,
     required String prayerPlace,
+    required DateTime eventDate,
   }) async {
     try {
       final response = await client.functions.invoke(
@@ -27,6 +28,7 @@ class FcmNotificationsRemoteRepository {
           'eventId': eventId,
           'prayerTime': prayerTime,
           'prayerPlace': prayerPlace,
+          'eventDate': eventDate.toIso8601String(),
         },
       );
 

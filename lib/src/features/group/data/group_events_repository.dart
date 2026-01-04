@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:congregate/src/features/group/domain/event_attendee.dart';
 import 'package:congregate/src/features/group_details/domain/group_event.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,36 +12,30 @@ class GroupEventsRepository {
   GroupEventsRepository(this.client);
   final SupabaseClient client;
 
-  /// Create a new prayer event
   Future<GroupEvent> createEvent({
     required String groupId,
     required String userId,
     required String prayerType,
-    required String prayerTime, // Format: "HH:mm"
+    required String prayerTime,
     required String prayerPlace,
-    DateTime? eventDate,
+    required DateTime eventDate, // Add this parameter
   }) async {
-    try {
-      final response = await client
-          .from('group_events')
-          .insert({
-            'group_id': groupId,
-            'created_by': userId,
-            'prayer_type': prayerType,
-            'prayer_time': prayerTime,
-            'prayer_place': prayerPlace,
-            'event_date': (eventDate ?? DateTime.now()).toIso8601String().split(
-              'T',
-            )[0],
-          })
-          .select()
-          .single();
+    final response = await client
+        .from('group_events')
+        .insert({
+          'group_id': groupId,
+          'created_by': userId,
+          'prayer_type': prayerType,
+          'prayer_time': prayerTime,
+          'prayer_place': prayerPlace,
+          'event_date': eventDate.toIso8601String().split(
+            'T',
+          )[0], // Store as date only (YYYY-MM-DD)
+        })
+        .select()
+        .single();
 
-      return GroupEvent.fromJson(response);
-    } catch (e, st) {
-      log('GroupEventsRepository.createEvent error: $e\n$st');
-      throw Exception('Failed to create event: $e');
-    }
+    return GroupEvent.fromJson(response);
   }
 
   /// Get events for a specific group
@@ -217,6 +212,20 @@ class GroupEventsRepository {
       log('GroupEventsRepository.removeAttendance error: $e\n$st');
       throw Exception('Failed to remove attendance: $e');
     }
+  }
+
+  Future<List<EventAttendee>> getEventAttendeesList(String eventId) async {
+    final response = await client
+        .from('group_event_attendees')
+        .select('*, user_profiles!inner(display_name)')
+        .eq('event_id', eventId)
+        .order('responded_at', ascending: false);
+
+    return (response as List).map((json) {
+      final map = Map<String, dynamic>.from(json as Map);
+      map['displayName'] = json['user_profiles']['display_name'];
+      return EventAttendee.fromJson(map);
+    }).toList();
   }
 }
 

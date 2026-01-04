@@ -27,7 +27,8 @@ enum PrayerType {
   maghrib('Maghrib'),
   isha('Isha'),
   nafl('Nafl'),
-  taraweeh('Taraweeh')
+  taraweeh('Taraweeh'),
+  tahajjud('Tahajjud')
   ;
 
   const PrayerType(this.displayName);

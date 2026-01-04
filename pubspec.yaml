@@ -3,7 +3,7 @@ description: "Congregate frontend."
 
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.10.0-36.0.dev
@@ -54,6 +54,7 @@ dependencies:
   share_plus: ^11.0.0
   shared_preferences: ^2.5.3
   shimmer: ^3.0.0
+  smooth_sheets: ^0.15.0
   socket_io_client: ^3.1.2
   supabase_flutter: ^2.9.1
   url_launcher: ^6.3.1

@@ -1,8 +1,9 @@
+import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
-import 'package:congregate/src/features/group/presentation/controller/group_controller.dart';
 import 'package:congregate/src/features/group_details/presentation/controllers/group_members_provider.dart';
-import 'package:congregate/src/features/group_details/presentation/views/create_event_dialog.dart';
 import 'package:congregate/src/features/group_details/presentation/views/event_card.dart';
+import 'package:congregate/src/router/routes.dart';
+import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,16 +25,11 @@ class GroupDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
-  late TextEditingController _nameController;
-  late bool _isPublic;
-  final _formKey = GlobalKey<FormState>();
   bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.groupName);
-    _isPublic = widget.isPublic;
     _checkAdminStatus();
   }
 
@@ -52,27 +48,6 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
     }
   }
 
-  Future<void> _saveChanges() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    await ref
-        .read(groupControllerProvider.notifier)
-        .updateGroup(
-          name: _nameController.text,
-          isPublic: _isPublic,
-          groupId: widget.groupId,
-        );
-  }
-
-  void _showCreateEventDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => CreateEventDialog(
-        groupId: widget.groupId,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final asyncMembers = ref.watch(groupMembersProvider(widget.groupId));
@@ -84,14 +59,22 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
         actions: _isAdmin
             ? [
                 IconButton(
-                  onPressed: _saveChanges,
-                  icon: const Icon(Icons.save),
+                  onPressed: () {
+                    EditGroupDetailsModalSheetRoute(
+                      groupId: widget.groupId,
+                      groupName: widget.groupName,
+                      isPublic: widget.isPublic,
+                    ).push<void>(context);
+                  },
+                  icon: const Icon(Icons.edit),
                 ),
               ]
             : null,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateEventDialog,
+        onPressed: () => CreateEventModalSheetRoute(
+          groupId: widget.groupId,
+        ).push<void>(context),
         icon: const Icon(Icons.add),
         label: const Text('Create Prayer Event'),
       ),
@@ -99,62 +82,21 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (members) {
-          final admins = members.where((m) => m.role == 'admin').toList();
-          final regularUsers = members
-              .where((m) => m.role == 'member')
-              .toList();
-
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Group Info',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Group Name',
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Public'),
-                        Switch(
-                          value: _isPublic,
-                          onChanged: (value) =>
-                              setState(() => _isPublic = value),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 32),
-                  ],
+              Text(
+                'Upcoming Prayer Events'.hardcoded,
+                style: const TextStyle(
+                  fontSize: Sizes.p20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-              // Upcoming Events Section
-              const Text(
-                'Upcoming Prayer Events',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
+              gapH8,
               asyncEvents.when(
                 loading: () => const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(Sizes.p16),
                     child: CircularProgressIndicator(),
                   ),
                 ),
@@ -162,7 +104,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                 data: (events) {
                   if (events.isEmpty) {
                     return const Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.all(Sizes.p16),
                       child: Text(
                         'No upcoming events. Create one!',
                         style: TextStyle(color: Colors.grey),
@@ -181,44 +123,32 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                   );
                 },
               ),
-              const Divider(height: 32),
-
-              // Admins section
-              const Text(
-                'Admins',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ...admins.map(
-                (m) => ListTile(
-                  leading: const Icon(Icons.verified, color: Colors.amber),
-                  title: Text(m.displayName),
-                  subtitle: const Text('Group Admin'),
+              Text(
+                'Members'.hardcoded,
+                style: const TextStyle(
+                  fontSize: Sizes.p20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Members section
-              const Text(
-                'Members',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ...regularUsers.map(
-                (m) => ListTile(
-                  leading: const Icon(Icons.person_outline),
-                  title: Text(m.displayName),
-                  subtitle: const Text('Member'),
-                ),
-              ),
+              ...(members.toList()..sort((a, b) {
+                    if (a.role == 'admin' && b.role != 'admin') return -1;
+                    if (a.role != 'admin' && b.role == 'admin') return 1;
+                    return 0;
+                  }))
+                  .map(
+                    (m) => ListTile(
+                      leading: Icon(
+                        m.role == 'admin' ? Icons.star : Icons.person_outline,
+                        color: m.role == 'admin' ? Colors.amber : null,
+                      ),
+                      title: Text(m.displayName),
+                      subtitle: Text(m.role == 'admin' ? 'Admin' : 'Member'),
+                    ),
+                  ),
             ],
           );
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
   }
 }
