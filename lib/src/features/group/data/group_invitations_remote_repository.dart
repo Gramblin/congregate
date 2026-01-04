@@ -82,7 +82,7 @@ class GroupInvitationsRepository {
 
       if (response == null) return null;
       return GroupInvitation.fromJson(response);
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       print('GroupInvitationsRepository.getInvitationByCode error: $e\n$st');
       return null;
     }
@@ -203,7 +203,7 @@ class GroupInvitationsRepository {
             groupData['topic_id'] as String,
           );
           print('Subscribed to group topic: ${groupData['topic_id']}');
-        } catch (e) {
+        } on Exception catch (e) {
           print('Failed to subscribe to FCM topic: $e');
         }
       }

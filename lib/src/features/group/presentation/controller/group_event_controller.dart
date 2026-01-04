@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:async';
 
 import 'package:congregate/src/features/group/data/fcm_notifications_remote_repository.dart';
@@ -69,7 +71,7 @@ class GroupEventController extends _$GroupEventController {
 
         // 4. Refresh the events list
         if (ref.mounted) {
-          ref.refresh(groupEventsProvider(groupId).future);
+          await ref.refresh(groupEventsProvider(groupId).future);
         }
         print('✅ Events list refreshed');
       } catch (e, stack) {

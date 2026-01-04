@@ -168,7 +168,9 @@ class _EventCardState extends ConsumerState<EventCard> {
                       label: const FittedBox(child: Text('Going')),
                       style: _userStatus == 'going'
                           ? OutlinedButton.styleFrom(
-                              backgroundColor: Colors.green.withOpacity(0.4),
+                              backgroundColor: Colors.green.withValues(
+                                alpha: 0.4,
+                              ),
                               side: const BorderSide(color: Colors.green),
                             )
                           : null,
@@ -185,7 +187,9 @@ class _EventCardState extends ConsumerState<EventCard> {
                       label: const FittedBox(child: Text('Maybe')),
                       style: _userStatus == 'maybe'
                           ? OutlinedButton.styleFrom(
-                              backgroundColor: Colors.orange.withOpacity(0.1),
+                              backgroundColor: Colors.orange.withValues(
+                                alpha: 0.1,
+                              ),
                               side: const BorderSide(color: Colors.orange),
                             )
                           : null,
@@ -202,7 +206,9 @@ class _EventCardState extends ConsumerState<EventCard> {
                       label: const FittedBox(child: Text("Can't")),
                       style: _userStatus == 'not_going'
                           ? OutlinedButton.styleFrom(
-                              backgroundColor: Colors.red.withOpacity(0.1),
+                              backgroundColor: Colors.red.withValues(
+                                alpha: 0.1,
+                              ),
                               side: const BorderSide(color: Colors.red),
                             )
                           : null,

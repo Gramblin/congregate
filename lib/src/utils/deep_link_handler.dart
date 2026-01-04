@@ -100,7 +100,7 @@ class DeepLinkHandler {
 
       // TODO: Navigate to the group details screen
       // Navigator.push(context, MaterialPageRoute(...));
-    } catch (e) {
+    } on Exception catch (e) {
       log('Error handling invite: $e');
 
       // Close loading dialog if still open

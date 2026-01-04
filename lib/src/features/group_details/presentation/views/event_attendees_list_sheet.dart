@@ -87,7 +87,9 @@ class _EventAttendeesListSheetState
                           ...going.map(
                             (attendee) => ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.green.withOpacity(0.2),
+                                backgroundColor: Colors.green.withValues(
+                                  alpha: 0.2,
+                                ),
                                 child: const Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
@@ -125,7 +127,9 @@ class _EventAttendeesListSheetState
                           ...maybe.map(
                             (attendee) => ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.orange.withOpacity(0.2),
+                                backgroundColor: Colors.orange.withValues(
+                                  alpha: 0.2,
+                                ),
                                 child: const Icon(
                                   Icons.help_outline,
                                   color: Colors.orange,
@@ -163,7 +167,9 @@ class _EventAttendeesListSheetState
                           ...notGoing.map(
                             (attendee) => ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.grey.withOpacity(0.2),
+                                backgroundColor: Colors.grey.withValues(
+                                  alpha: 0.2,
+                                ),
                                 child: const Icon(
                                   Icons.cancel,
                                   color: Colors.grey,

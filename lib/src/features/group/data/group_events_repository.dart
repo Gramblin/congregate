@@ -212,7 +212,7 @@ class GroupEventsRepository {
           .maybeSingle();
 
       return response?['status'] as String?;
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       log('GroupEventsRepository.getUserAttendanceStatus error: $e\n$st');
       return null;
     }
@@ -276,7 +276,7 @@ class GroupEventsRepository {
     try {
       await flutterLocalNotificationsPlugin.cancel(eventId.hashCode);
       log('Cancelled reminder for event: $eventId');
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       log('Failed to cancel reminder: $e\n$st');
     }
   }

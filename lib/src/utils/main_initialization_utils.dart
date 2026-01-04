@@ -138,7 +138,7 @@ class MainInitializationUtils {
           .eq('user_id', userId);
 
       debugPrint('✅ FCM token updated in database');
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       debugPrint('❌ Failed to update FCM token: $e\n$st');
     }
   }
@@ -169,7 +169,7 @@ class MainInitializationUtils {
             await FirebaseMessaging.instance.subscribeToTopic(topicId);
             successCount++;
             debugPrint('✅ Subscribed to topic: $topicId');
-          } catch (e) {
+          } on Exception catch (e) {
             failCount++;
             debugPrint('❌ Failed to subscribe to topic $topicId: $e');
           }
@@ -179,7 +179,7 @@ class MainInitializationUtils {
       debugPrint(
         '🎉 Re-subscription complete: $successCount succeeded, $failCount failed',
       );
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       debugPrint('❌ Failed to re-subscribe to group topics: $e\n$st');
     }
   }
@@ -351,7 +351,7 @@ class MainInitializationUtils {
         await _resubscribeToGroupTopics();
 
         debugPrint('✅ Re-subscribed to all groups after token refresh');
-      } catch (e, st) {
+      } on Exception catch (e, st) {
         debugPrint('❌ Failed to handle token refresh: $e\n$st');
       }
     });
@@ -465,7 +465,7 @@ class MainInitializationUtils {
           ),
         ),
       );
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       debugPrint('Failed to mark attendance: $e\n$st');
     }
   }
@@ -518,7 +518,7 @@ class MainInitializationUtils {
           ),
         ),
       );
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       debugPrint('Failed to mark attendance: $e\n$st');
     }
   }

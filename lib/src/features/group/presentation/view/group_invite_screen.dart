@@ -36,7 +36,7 @@ class _GroupInviteScreenState extends ConsumerState<GroupInviteScreen> {
           _isLoading = false;
         });
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _errorMessage = e.toString();
@@ -68,7 +68,7 @@ class _GroupInviteScreenState extends ConsumerState<GroupInviteScreen> {
         );
         context.go('/home'); // Navigate to home
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _errorMessage = e.toString();
