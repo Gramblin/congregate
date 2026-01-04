@@ -102,7 +102,7 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.redAccent,
+        colorSchemeSeed: Colors.green,
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: <TargetPlatform, PageTransitionsBuilder>{
             TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
@@ -118,7 +118,7 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
         ),
       ),
       darkTheme: ThemeData(
-        colorSchemeSeed: Colors.redAccent,
+        colorSchemeSeed: Colors.green,
         useMaterial3: true,
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: <TargetPlatform, PageTransitionsBuilder>{

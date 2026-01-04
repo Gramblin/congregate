@@ -1,18 +1,21 @@
+import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group/presentation/controller/group_event_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
-class EventAttendeesList extends ConsumerStatefulWidget {
-  const EventAttendeesList({required this.eventId, super.key});
+class EventAttendeesListSheet extends ConsumerStatefulWidget {
+  const EventAttendeesListSheet({required this.eventId, super.key});
   final String eventId;
 
   @override
-  ConsumerState<EventAttendeesList> createState() => _EventAttendeesListState();
+  ConsumerState<EventAttendeesListSheet> createState() =>
+      _EventAttendeesListSheetState();
 }
 
-class _EventAttendeesListState extends ConsumerState<EventAttendeesList> {
+class _EventAttendeesListSheetState
+    extends ConsumerState<EventAttendeesListSheet> {
   @override
   Widget build(BuildContext context) {
     return Sheet(
@@ -28,10 +31,15 @@ class _EventAttendeesListState extends ConsumerState<EventAttendeesList> {
         snaps: [SheetOffset(0.7), SheetOffset(1)],
       ),
       scrollConfiguration: const SheetScrollConfiguration(),
-
       child: Column(
         children: [
-          IconButton(onPressed: context.pop, icon: const Icon(Icons.close)),
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              onPressed: context.pop,
+              icon: const Icon(Icons.close),
+            ),
+          ),
           Expanded(
             child: ref
                 .watch(eventAttendeesProvider(widget.eventId))
@@ -132,7 +140,7 @@ class _EventAttendeesListState extends ConsumerState<EventAttendeesList> {
                         ],
                         if (notGoing.isNotEmpty) ...[
                           Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Sizes.p16),
                             child: Row(
                               children: [
                                 const Icon(
@@ -140,7 +148,7 @@ class _EventAttendeesListState extends ConsumerState<EventAttendeesList> {
                                   color: Colors.grey,
                                   size: 20,
                                 ),
-                                const SizedBox(width: 8),
+                                gapW8,
                                 Text(
                                   'Not Going (${notGoing.length})',
                                   style: TextStyle(

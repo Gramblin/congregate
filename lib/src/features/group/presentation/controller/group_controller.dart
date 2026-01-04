@@ -236,11 +236,12 @@ class GroupController extends _$GroupController {
       groupId: groupId,
     );
 
-    final inviteLink = 'congregate://invite/${invitation.inviteCode}';
+    // final inviteLink = 'congregate://invite/${invitation.inviteCode}';
+    final inviteLink = invitation.inviteCode;
 
     // Share the link (use share_plus package)
     await SharePlus.instance.share(
-      ShareParams(text: 'Join my prayer group: $inviteLink'),
+      ShareParams(text: inviteLink),
     );
   }
 }

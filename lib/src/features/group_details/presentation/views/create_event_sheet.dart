@@ -23,6 +23,7 @@ class _CreateEventBottomSheetState
     extends ConsumerState<CreateEventBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _placeController = TextEditingController();
+  final _noteController = TextEditingController();
 
   PrayerType _selectedPrayerType = PrayerType.dhuhr;
   TimeOfDay _selectedTime = TimeOfDay.now();
@@ -99,6 +100,9 @@ class _CreateEventBottomSheetState
           prayerTime: timeString,
           prayerPlace: _placeController.text.trim(),
           eventDate: eventDate,
+          note: _noteController.text.trim().isEmpty
+              ? null
+              : _noteController.text.trim(),
         );
 
     if (mounted) {
@@ -170,14 +174,13 @@ class _CreateEventBottomSheetState
                           );
                         }).toList(),
                       ),
-                      // Add helper text for next-day prayers
                       if (_isNextDayPrayer())
                         Padding(
-                          padding: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.only(top: Sizes.p8),
                           child: Text(
                             'This will be scheduled for tomorrow'.hardcoded,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: Sizes.p12,
                               color: Theme.of(context).primaryColor,
                               fontStyle: FontStyle.italic,
                             ),
@@ -193,7 +196,7 @@ class _CreateEventBottomSheetState
                             title: Text('Prayer Time'.hardcoded),
                             subtitle: Text(_selectedTime.format(context)),
                           ),
-                          const SizedBox(height: 8),
+                          gapH8,
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -242,12 +245,25 @@ class _CreateEventBottomSheetState
                           hintText: 'e.g., Main Mosque, Prayer Room',
                           prefixIcon: Icon(Icons.location_on),
                         ),
+                        textCapitalization: TextCapitalization.words,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter a place';
                           }
                           return null;
                         },
+                      ),
+                      gapH16,
+                      TextFormField(
+                        controller: _noteController,
+                        decoration: const InputDecoration(
+                          labelText: 'Note (Optional)',
+                          hintText: 'e.g., Bring prayer mat, Special occasion',
+                          prefixIcon: Icon(Icons.note),
+                        ),
+                        textCapitalization: TextCapitalization.sentences,
+                        maxLines: 2,
+                        maxLength: 200,
                       ),
                     ],
                   ),
@@ -292,6 +308,7 @@ class _CreateEventBottomSheetState
   @override
   void dispose() {
     _placeController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 }

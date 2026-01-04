@@ -1,10 +1,14 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:congregate/src/features/group/domain/event_attendee.dart';
 import 'package:congregate/src/features/group_details/domain/group_event.dart';
+import 'package:congregate/src/utils/main_initialization_utils.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 part 'group_events_repository.g.dart';
 
@@ -18,9 +22,10 @@ class GroupEventsRepository {
     required String prayerType,
     required String prayerTime,
     required String prayerPlace,
-    required DateTime eventDate, // Add this parameter
+    required DateTime eventDate,
+    String? note, // Add this optional parameter
   }) async {
-    final response = await client
+    final data = await client
         .from('group_events')
         .insert({
           'group_id': groupId,
@@ -28,14 +33,13 @@ class GroupEventsRepository {
           'prayer_type': prayerType,
           'prayer_time': prayerTime,
           'prayer_place': prayerPlace,
-          'event_date': eventDate.toIso8601String().split(
-            'T',
-          )[0], // Store as date only (YYYY-MM-DD)
+          'event_date': eventDate.toIso8601String().split('T')[0],
+          if (note != null) 'note': note, // Include note if present
         })
         .select()
         .single();
 
-    return GroupEvent.fromJson(response);
+    return GroupEvent.fromJson(data);
   }
 
   /// Get events for a specific group
@@ -114,7 +118,7 @@ class GroupEventsRepository {
   Future<void> markAttendance({
     required String eventId,
     required String userId,
-    required String status, // 'going', 'not_going', 'maybe'
+    required String status,
   }) async {
     try {
       // Upsert with onConflict to handle duplicates
@@ -125,8 +129,31 @@ class GroupEventsRepository {
           'status': status,
           'responded_at': DateTime.now().toIso8601String(),
         },
-        onConflict: 'event_id,user_id', // Update if combination exists
+        onConflict: 'event_id,user_id',
       );
+
+      // If user is going, schedule reminder
+      if (status == 'going') {
+        // Get event details
+        final event = await client
+            .from('group_events')
+            .select()
+            .eq('id', eventId)
+            .single();
+
+        final eventData = GroupEvent.fromJson(event);
+
+        await scheduleEventReminder(
+          eventId: eventId,
+          prayerType: eventData.prayerType,
+          prayerTime: eventData.prayerTime,
+          prayerPlace: eventData.prayerPlace,
+          eventDate: DateTime.parse(eventData.eventDate),
+        );
+      } else {
+        // If not going, cancel any existing reminder
+        await cancelEventReminder(eventId);
+      }
     } catch (e, st) {
       log('GroupEventsRepository.markAttendance error: $e\n$st');
       throw Exception('Failed to mark attendance: $e');
@@ -226,6 +253,98 @@ class GroupEventsRepository {
       map['displayName'] = json['user_profiles']['display_name'];
       return EventAttendee.fromJson(map);
     }).toList();
+  }
+
+  /// Schedule reminder notification 5 minutes before event
+  Future<void> scheduleEventReminder({
+    required String eventId,
+    required String prayerType,
+    required String prayerTime,
+    required String prayerPlace,
+    required DateTime eventDate,
+  }) async {
+    try {
+      // Parse the event time (format: "HH:mm" or "HH:mm:ss")
+      final timeParts = prayerTime.split(':');
+      final eventHour = int.parse(timeParts[0]);
+      final eventMinute = int.parse(timeParts[1]);
+
+      // Create the exact event datetime IN LOCAL TIMEZONE
+      final now = DateTime.now();
+      final eventDateTime = DateTime(
+        eventDate.year,
+        eventDate.month,
+        eventDate.day,
+        eventHour,
+        eventMinute,
+      );
+
+      // Schedule for 5 minutes before
+      final reminderTime = eventDateTime.subtract(const Duration(minutes: 5));
+
+      // Don't schedule if time has already passed
+      if (reminderTime.isBefore(now)) {
+        log('Reminder time has passed, not scheduling');
+        return;
+      }
+
+      // Get the local timezone location
+      final location = tz.getLocation(tz.local.name);
+
+      // Create TZDateTime directly from components (not converting)
+      final tzReminderTime = tz.TZDateTime(
+        location,
+        reminderTime.year,
+        reminderTime.month,
+        reminderTime.day,
+        reminderTime.hour,
+        reminderTime.minute,
+      );
+
+      log('Local time now: $now');
+      log('Reminder scheduled for: $tzReminderTime');
+
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        eventId.hashCode,
+        '⏰ Prayer Reminder',
+        '$prayerType prayer starting in 5 minutes at $prayerPlace',
+        tzReminderTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'prayer_reminders_channel',
+            'Prayer Reminders',
+            channelDescription: 'Reminders for upcoming prayer gatherings',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@drawable/ic_congregate',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: jsonEncode({
+          'type': 'prayer_reminder',
+          'event_id': eventId,
+        }),
+      );
+
+      log('✅ Scheduled reminder for $prayerType');
+    } catch (e, st) {
+      log('Failed to schedule reminder: $e\n$st');
+    }
+  }
+
+  /// Cancel a scheduled reminder
+  Future<void> cancelEventReminder(String eventId) async {
+    try {
+      await flutterLocalNotificationsPlugin.cancel(eventId.hashCode);
+      log('Cancelled reminder for event: $eventId');
+    } catch (e, st) {
+      log('Failed to cancel reminder: $e\n$st');
+    }
   }
 }
 

@@ -14,6 +14,7 @@ abstract class GroupEvent with _$GroupEvent {
     @JsonKey(name: 'prayer_place') required String prayerPlace,
     @JsonKey(name: 'event_date') required String eventDate,
     @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'note') String? note,
   }) = _GroupEvent;
 
   factory GroupEvent.fromJson(Map<String, dynamic> json) =>

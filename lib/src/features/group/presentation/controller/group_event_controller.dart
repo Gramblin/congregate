@@ -19,7 +19,8 @@ class GroupEventController extends _$GroupEventController {
     required String prayerType,
     required String prayerTime,
     required String prayerPlace,
-    required DateTime eventDate, // Add this parameter
+    required DateTime eventDate,
+    String? note, // Add this optional parameter
   }) async {
     state = const AsyncLoading();
 
@@ -35,7 +36,8 @@ class GroupEventController extends _$GroupEventController {
         prayerType: prayerType,
         prayerTime: prayerTime,
         prayerPlace: prayerPlace,
-        eventDate: eventDate, // Pass the date
+        eventDate: eventDate,
+        note: note, // Pass the note
       );
 
       // 2. Auto-mark creator as attending
@@ -53,7 +55,8 @@ class GroupEventController extends _$GroupEventController {
         prayerTime: prayerTime,
         eventId: event.id,
         prayerPlace: prayerPlace,
-        eventDate: eventDate, // Pass the date
+        eventDate: eventDate,
+        note: note, // Pass the note
       );
 
       // 4. Refresh the events list (check if still mounted)

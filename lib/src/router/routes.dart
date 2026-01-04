@@ -1,65 +1,22 @@
 import 'dart:io';
 
-import 'package:congregate/src/features/group/presentation/view/create_group_screen.dart';
+import 'package:congregate/src/features/group/presentation/view/create_group_sheet.dart';
 import 'package:congregate/src/features/group/presentation/view/group_invite_screen.dart';
 import 'package:congregate/src/features/group_details/presentation/views/create_event_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/edit_group_details_sheet.dart';
-import 'package:congregate/src/features/group_details/presentation/views/event_attendees_list.dart';
+import 'package:congregate/src/features/group_details/presentation/views/event_attendees_list_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
-import 'package:congregate/src/features/home/presentation/home_screen.dart';
+import 'package:congregate/src/features/home/presentation/view/home_screen.dart';
+import 'package:congregate/src/features/home/presentation/view/join_group_sheet.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/views/profile_screen.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/views/profile_setup_screen.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 part 'routes.g.dart';
-
-// @TypedGoRoute<FriendRequestRoute>(path: '/friend/:userId/:username')
-// @immutable
-// class FriendRequestRoute extends GoRouteData {
-//   const FriendRequestRoute({required this.userId, required this.username});
-
-//   final String userId;
-//   final String username;
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? CupertinoPage(
-//             child: FriendRequestScreen(userId: userId, username: username),
-//             name: 'FriendRequest',
-//           )
-//         : CupertinoPage(
-//             child: FriendRequestScreen(userId: userId, username: username),
-//             name: 'FriendRequest',
-//           );
-//   }
-// }
-
-// @TypedGoRoute<PublicProfileRoute>(path: '/profile/:userId')
-// @immutable
-// class PublicProfileRoute extends GoRouteData {
-//   const PublicProfileRoute({required this.userId});
-
-//   final String userId;
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? CupertinoPage(
-//             child: PublicProfileScreen(userId: userId),
-//             name: 'PublicProfile',
-//           )
-//         : CupertinoPage(
-//             child: PublicProfileScreen(userId: userId),
-//             name: 'PublicProfile',
-//           );
-//   }
-// }
 
 @TypedGoRoute<LoginRoute>(
   path: '/login',
@@ -71,8 +28,8 @@ class LoginRoute extends GoRouteData with $LoginRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
-    return kIsWeb
-        ? const CupertinoPage(child: LoginScreen(), name: 'Login')
+    return Platform.isAndroid
+        ? const MaterialPage(child: LoginScreen(), name: 'Login')
         : const CupertinoPage(child: LoginScreen(), name: 'Login');
   }
 }
@@ -83,8 +40,8 @@ class ProfileSetupRoute extends GoRouteData with $ProfileSetupRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
-    return kIsWeb
-        ? const CupertinoPage(child: ProfileSetupScreen(), name: 'ProfileSetup')
+    return Platform.isAndroid
+        ? const MaterialPage(child: ProfileSetupScreen(), name: 'ProfileSetup')
         : const CupertinoPage(
             child: ProfileSetupScreen(),
             name: 'ProfileSetup',
@@ -129,66 +86,6 @@ class GroupInviteRoute extends GoRouteData with $GroupInviteRoute {
   }
 }
 
-// @immutable
-// class TestRoomRoute extends GoRouteData {
-//   const TestRoomRoute({required this.isScrolling});
-
-//   final bool isScrolling;
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? CupertinoPage(
-//             child: TestRoomScreen(isScrolling: isScrolling),
-//             name: 'TestRoom',
-//           )
-//         : CupertinoPage(
-//             child: TestRoomScreen(isScrolling: isScrolling),
-//             name: 'TestRoom',
-//           );
-//   }
-// }
-
-// @immutable
-// class WaitingOpponentRoute extends GoRouteData {
-//   const WaitingOpponentRoute({this.friendId});
-
-//   final String? friendId;
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? CupertinoPage(
-//             child: WaitingOpponentScreen(friendId: friendId),
-//             name: 'WaitingOpponent',
-//           )
-//         : CupertinoPage(
-//             child: WaitingOpponentScreen(friendId: friendId),
-//             name: 'WaitingOpponent',
-//           );
-//   }
-// }
-
-// @immutable
-// class GameRoute extends GoRouteData {
-//   const GameRoute({required this.roomId});
-
-//   final String roomId;
-
-//   @override
-//   Page<void> buildPage(BuildContext context, GoRouterState state) {
-//     return kIsWeb
-//         ? CupertinoPage(
-//             child: GameScreen(roomId: roomId),
-//             name: 'Game',
-//           )
-//         : CupertinoPage(
-//             child: GameScreen(roomId: roomId),
-//             name: 'Game',
-//           );
-//   }
-// }
-
 @immutable
 class ProfileRoute extends GoRouteData with $ProfileRoute {
   const ProfileRoute();
@@ -207,19 +104,6 @@ class ProfileRoute extends GoRouteData with $ProfileRoute {
   }
 }
 
-@TypedGoRoute<CreateGroupRoute>(path: '/create-group')
-@immutable
-class CreateGroupRoute extends GoRouteData with $CreateGroupRoute {
-  const CreateGroupRoute();
-
-  @override
-  Page<void> buildPage(BuildContext context, GoRouterState state) {
-    return kIsWeb
-        ? const CupertinoPage(child: CreateGroupScreen(), name: 'CreateGroup')
-        : const CupertinoPage(child: CreateGroupScreen(), name: 'CreateGroup');
-  }
-}
-
 @TypedGoRoute<GroupDetailsRoute>(path: '/group-details')
 @immutable
 class GroupDetailsRoute extends GoRouteData with $GroupDetailsRoute {
@@ -235,8 +119,8 @@ class GroupDetailsRoute extends GoRouteData with $GroupDetailsRoute {
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
-    return kIsWeb
-        ? CupertinoPage(
+    return Platform.isAndroid
+        ? MaterialPage(
             child: GroupDetailsScreen(
               groupId: groupId,
               groupName: groupName,
@@ -319,7 +203,44 @@ class EventAttendiesListModalSheetRoute extends GoRouteData
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     return ModalSheetPage(
       swipeDismissible: true,
-      child: EventAttendeesList(eventId: eventId),
+      child: EventAttendeesListSheet(eventId: eventId),
+      viewportPadding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+      ),
+    );
+  }
+}
+
+@TypedGoRoute<CreateGroupModalSheetRoute>(path: '/new-group-sheet')
+@immutable
+class CreateGroupModalSheetRoute extends GoRouteData
+    with $CreateGroupModalSheetRoute {
+  const CreateGroupModalSheetRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return ModalSheetPage(
+      swipeDismissible: true,
+      child: const CreateGroupSheet(),
+      viewportPadding: EdgeInsets.only(
+        top: MediaQuery.viewPaddingOf(context).top,
+      ),
+    );
+  }
+}
+
+@TypedGoRoute<JoinGroupModalSheetRoute>(path: '/join-group-modal')
+@immutable
+class JoinGroupModalSheetRoute extends GoRouteData
+    with $JoinGroupModalSheetRoute {
+  const JoinGroupModalSheetRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return ModalSheetPage(
+      swipeDismissible: true,
+      child: const JoinGroupSheet(),
+      name: 'JoinGroup',
       viewportPadding: EdgeInsets.only(
         top: MediaQuery.viewPaddingOf(context).top,
       ),

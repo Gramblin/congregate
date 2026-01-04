@@ -18,6 +18,7 @@ class FcmNotificationsRemoteRepository {
     required String prayerTime,
     required String prayerPlace,
     required DateTime eventDate,
+    String? note, // Add this optional parameter
   }) async {
     try {
       final response = await client.functions.invoke(
@@ -29,6 +30,7 @@ class FcmNotificationsRemoteRepository {
           'prayerTime': prayerTime,
           'prayerPlace': prayerPlace,
           'eventDate': eventDate.toIso8601String(),
+          if (note != null) 'note': note, // Include note if present
         },
       );
 

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 
 // Global instance for local notifications
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -185,8 +186,10 @@ class MainInitializationUtils {
 
   /// Initialize local notifications plugin
   static Future<void> _initializeLocalNotifications() async {
+    tz.initializeTimeZones();
+
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@drawable/ic_congregate',
     );
     const iosSettings = DarwinInitializationSettings();
 
@@ -236,14 +239,68 @@ class MainInitializationUtils {
   static void _setupForegroundMessageListener() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📬 Foreground message received!');
-      debugPrint('Title: ${message.notification?.title}');
-      debugPrint('Body: ${message.notification?.body}');
       debugPrint('Data: ${message.data}');
 
-      // Show notification when app is in foreground
-      if (message.notification != null) {
-        _showLocalNotification(message);
+      // FILTER: Ignore messages without proper data
+      if (message.data.isEmpty || message.data['type'] == null) {
+        debugPrint('⚠️ Ignoring message with empty or invalid data');
+        return; // Don't show notification for invalid messages
       }
+
+      // Only process prayer_event type notifications
+      if (message.data['type'] != 'prayer_event') {
+        debugPrint('⚠️ Ignoring non-prayer-event message');
+        return;
+      }
+
+      // Get title and body from data (your backend sends data-only messages)
+      final title = message.data['title'] as String? ?? 'Prayer Notification';
+      final body = message.data['body'] as String? ?? '';
+
+      // Validate required fields
+      if (title.isEmpty || body.isEmpty) {
+        debugPrint('⚠️ Missing title or body in message data');
+        return;
+      }
+
+      // Show local notification with action buttons
+      flutterLocalNotificationsPlugin.show(
+        message.hashCode,
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'prayer_events_channel',
+            'Prayer Event Notifications',
+            channelDescription:
+                'Notifications for prayer gatherings and events',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@drawable/ic_congregate',
+            actions: <AndroidNotificationAction>[
+              AndroidNotificationAction(
+                'accept',
+                'Accept',
+                icon: DrawableResourceAndroidBitmap('@drawable/ic_congregate'),
+                showsUserInterface: true,
+              ),
+              AndroidNotificationAction(
+                'decline',
+                'Decline',
+              ),
+            ],
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: jsonEncode(message.data),
+      );
+
+      // Also call your existing handler
+      // ref.read(fcmNotificationServiceProvider).handleForegroundMessage(message);
     });
   }
 
@@ -302,13 +359,13 @@ class MainInitializationUtils {
       channelDescription: 'Notifications for prayer gatherings and events',
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_congregate',
       // Add action buttons
       actions: <AndroidNotificationAction>[
         AndroidNotificationAction(
           'accept',
           'Accept',
-          icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+          icon: DrawableResourceAndroidBitmap('@drawable/ic_congregate'),
           showsUserInterface: true,
         ),
         AndroidNotificationAction(
