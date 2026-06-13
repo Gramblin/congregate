@@ -36,6 +36,53 @@ class UserProfileNotifier extends _$UserProfileNotifier {
     return profile;
   }
 
+  // Add this method to force refresh the profile
+  Future<UserProfile?> refreshProfile() async {
+    final user = ref.read(supabaseProvider).client.auth.currentUser;
+    if (user == null) return null;
+
+    state = const AsyncLoading();
+
+    final repo = ref.read(userProfileRemoteRepositoryProvider);
+    final result = await AsyncValue.guard(
+      () => repo.fetchProfile(user.id),
+    );
+
+    if (!result.hasError && result.value != null) {
+      await _cacheProfile(result.value!);
+    }
+
+    state = result;
+    return result.value;
+  }
+
+  Future<void> createProfile({
+    required String displayName,
+    String? realName,
+    bool showRealName = false,
+  }) async {
+    final user = ref.read(supabaseProvider).client.auth.currentUser;
+    if (user == null) throw Exception('User not logged in.');
+
+    state = const AsyncLoading();
+
+    final repo = ref.read(userProfileRemoteRepositoryProvider);
+    final result = await AsyncValue.guard(
+      () => repo.createProfile(
+        userId: user.id,
+        displayName: displayName,
+        realName: realName,
+        showRealName: showRealName,
+      ),
+    );
+
+    if (!result.hasError && result.value != null) {
+      await _cacheProfile(result.value!);
+    }
+
+    state = result;
+  }
+
   Future<void> updateProfile({
     String? displayName,
     String? realName,
@@ -71,5 +118,6 @@ class UserProfileNotifier extends _$UserProfileNotifier {
   Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_cacheKey);
+    state = const AsyncData(null);
   }
 }

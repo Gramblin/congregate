@@ -2,11 +2,14 @@ import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
 import 'package:congregate/src/features/group/presentation/controller/group_event_controller.dart';
 import 'package:congregate/src/features/group_details/domain/group_event.dart';
-import 'package:congregate/src/router/routes.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
+import 'package:go_router/go_router.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
 class EventCard extends ConsumerStatefulWidget {
   const EventCard({
@@ -92,9 +95,7 @@ class _EventCardState extends ConsumerState<EventCard> {
         borderRadius: BorderRadius.circular(8),
 
         onTap: () {
-          EventAttendiesListModalSheetRoute(
-            eventId: widget.event.id,
-          ).push<void>(context);
+          context.push('/attendees/${widget.event.id}');
         },
         child: Column(
           children: [
@@ -106,7 +107,9 @@ class _EventCardState extends ConsumerState<EventCard> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Time: ${widget.event.prayerDateTime}'),
+                  Text(
+                    'Time: ${_formatPrayerTime(widget.event.prayerDateTime)}',
+                  ),
                   Text('Location: ${widget.event.prayerPlace}'),
                   gapH4,
                   if (widget.event.note != null)
@@ -154,6 +157,12 @@ class _EventCardState extends ConsumerState<EventCard> {
                     )
                   : null,
             ),
+            if (widget.event.latitude != null &&
+                widget.event.longitude != null)
+              _MapPreview(
+                lat: widget.event.latitude!,
+                lon: widget.event.longitude!,
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
@@ -215,6 +224,83 @@ class _EventCardState extends ConsumerState<EventCard> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatPrayerTime(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final eventDate = DateTime(local.year, local.month, local.day);
+
+    final timeFormat = DateFormat('h:mm a');
+
+    if (eventDate == today) {
+      return 'Today at ${timeFormat.format(local)}';
+    } else if (eventDate == today.add(const Duration(days: 1))) {
+      return 'Tomorrow at ${timeFormat.format(local)}';
+    } else {
+      return DateFormat('MMM d • h:mm a').format(local);
+    }
+  }
+}
+
+class _MapPreview extends StatelessWidget {
+  const _MapPreview({required this.lat, required this.lon});
+  final double lat;
+  final double lon;
+
+  @override
+  Widget build(BuildContext context) {
+    final point = LatLng(lat, lon);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+      child: SizedBox(
+        height: 140,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: point,
+                initialZoom: 15,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.qubique.congregate',
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: point,
+                      width: 36,
+                      height: 36,
+                      child: Icon(
+                        Icons.location_pin,
+                        color: colorScheme.error,
+                        size: 36,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            // Tap-blocker overlay so the card tap still works
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {},
+                child: const ColoredBox(color: Colors.transparent),
               ),
             ),
           ],

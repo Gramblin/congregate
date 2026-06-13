@@ -21,12 +21,14 @@ class GroupRemoteRepository {
     required String name,
     required bool isPublic,
     required String userId,
+    String? country,
+    String? city,
+    String? description,
   }) async {
     try {
       final groupId = const Uuid().v4();
       final topicId = 'group_$groupId';
 
-      // Create the group in Supabase
       final response = await client
           .from('groups')
           .insert({
@@ -35,6 +37,9 @@ class GroupRemoteRepository {
             'is_public': isPublic,
             'topic_id': topicId,
             'created_by': userId,
+            if (country != null) 'country': country,
+            if (city != null) 'city': city,
+            if (description != null) 'description': description,
           })
           .select()
           .single();
@@ -137,22 +142,38 @@ class GroupRemoteRepository {
 
   Future<List<GroupMember>> fetchGroupMembers(String groupId) async {
     try {
-      final response = await client
+      // 1. Fetch members for this group
+      final membersResponse = await client
           .from('group_members')
-          .select(
-            'user_id, role, user_profiles(display_name, real_name, show_real_name)',
-          )
+          .select('user_id, role')
           .eq('group_id', groupId);
 
-      return (response as List<dynamic>).map((row) {
-        final profile = row['user_profiles'] as Map<String, dynamic>?;
+      final members = membersResponse as List<dynamic>;
+      if (members.isEmpty) return [];
 
+      final userIds = members
+          .map((r) => r['user_id'] as String)
+          .toList();
+
+      // 2. Fetch profiles for those user IDs
+      final profilesResponse = await client
+          .from('user_profiles')
+          .select('user_id, display_name, real_name, show_real_name')
+          .inFilter('user_id', userIds);
+
+      final profileMap = <String, Map<String, dynamic>>{
+        for (final p in profilesResponse as List<dynamic>)
+          p['user_id'] as String: p as Map<String, dynamic>,
+      };
+
+      // 3. Join in Dart
+      return members.map((row) {
+        final profile = profileMap[row['user_id'] as String];
         final showRealName = profile?['show_real_name'] as bool? ?? false;
-
         final displayName = showRealName
             ? (profile?['real_name'] as String? ??
-                  profile?['display_name'] as String? ??
-                  'Unknown')
+                profile?['display_name'] as String? ??
+                'Unknown')
             : (profile?['display_name'] as String? ?? 'Unknown');
 
         return GroupMember(
@@ -162,10 +183,26 @@ class GroupRemoteRepository {
         );
       }).toList();
     } catch (e, st) {
-      log(
-        'GroupDetailsRemoteRepository.fetchGroupMembers ERROR: $e\n$st',
-      );
+      log('GroupDetailsRemoteRepository.fetchGroupMembers ERROR: $e\n$st');
       throw Exception('Failed to fetch group members: $e');
+    }
+  }
+
+  /// Admin promotes/demotes a member's role (admin → leader → member)
+  Future<void> updateMemberRole({
+    required String groupId,
+    required String targetUserId,
+    required String newRole,
+  }) async {
+    try {
+      await client.rpc('update_member_role', params: {
+        'p_group_id': groupId,
+        'p_user_id': targetUserId,
+        'p_new_role': newRole,
+      });
+    } catch (e, st) {
+      log('GroupRemoteRepository.updateMemberRole exception: $e\n$st');
+      rethrow;
     }
   }
 

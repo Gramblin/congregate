@@ -32,9 +32,12 @@ class HomeRemoteRepository {
     }
   }
 
-  Future<List<Group>> fetchJoinableGroups(String userId) async {
+  Future<List<Group>> fetchJoinableGroups(
+    String userId, {
+    String? country,
+    String? city,
+  }) async {
     try {
-      // 1) Fetch groups the user is already in
       final memberRows = await _client
           .from('group_members')
           .select('group_id')
@@ -44,21 +47,52 @@ class HomeRemoteRepository {
           .map<String>((row) => row['group_id'] as String)
           .toList();
 
-      // 2) Fetch all public groups
-      final publicRows = await _client
+      var query = _client
           .from('groups')
           .select()
-          .eq('is_public', true);
+          .eq('is_public', true)
+          .eq('approval_status', 'approved');
 
-      // 3) Remove the ones the user already joined
+      if (country != null) query = query.eq('country', country);
+      if (city != null && city.isNotEmpty) query = query.eq('city', city);
+
+      final publicRows = await query;
+
       final joinable = publicRows.where(
         (row) => !memberIds.contains(row['id']),
       );
 
-      // 4) Convert to model
       return joinable.map(Group.fromJson).toList();
     } catch (e, st) {
       log('HomeRemoteRepository.fetchJoinableGroups Error: $e\n$st');
+      throw Exception('HomeRemoteRepository Exception: $e');
+    }
+  }
+
+  /// Upcoming events from all groups the user has joined, sorted by time.
+  Future<List<Map<String, dynamic>>> fetchUserFeedEvents(String userId) async {
+    try {
+      final memberRows = await _client
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', userId);
+
+      final groupIds = (memberRows as List)
+          .map<String>((r) => r['group_id'] as String)
+          .toList();
+
+      if (groupIds.isEmpty) return [];
+
+      final rows = await _client
+          .from('group_events')
+          .select('*, groups(id, name)')
+          .inFilter('group_id', groupIds)
+          .gte('prayer_datetime', DateTime.now().toUtc().toIso8601String())
+          .order('prayer_datetime');
+
+      return (rows as List).cast<Map<String, dynamic>>();
+    } catch (e, st) {
+      log('HomeRemoteRepository.fetchUserFeedEvents error: $e\n$st');
       throw Exception('HomeRemoteRepository Exception: $e');
     }
   }

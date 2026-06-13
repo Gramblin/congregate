@@ -32,11 +32,42 @@ class UserProfileRemoteRepository {
     }
   }
 
+  Future<UserProfile> createProfile({
+    required String userId,
+    required String displayName,
+    String? realName,
+    bool showRealName = false,
+    String? country,
+    String? city,
+  }) async {
+    try {
+      final result = await supabaseClient
+          .from('user_profiles')
+          .insert({
+            'user_id': userId,
+            'display_name': displayName,
+            'real_name': realName,
+            'show_real_name': showRealName,
+            if (country != null) 'country': country,
+            if (city != null) 'city': city,
+          })
+          .select()
+          .single();
+
+      return UserProfile.fromJson(result);
+    } catch (e, st) {
+      log('UserProfileRemoteRepository.createProfile exception: $e\n$st');
+      rethrow;
+    }
+  }
+
   Future<UserProfile?> updateProfile(
     String userId, {
     String? displayName,
     String? realName,
     bool? showRealName,
+    String? country,
+    String? city,
   }) async {
     try {
       final updates = <String, dynamic>{};
@@ -50,6 +81,8 @@ class UserProfileRemoteRepository {
       if (showRealName != null) {
         updates['show_real_name'] = showRealName;
       }
+      if (country != null) updates['country'] = country;
+      if (city != null) updates['city'] = city;
 
       if (updates.isEmpty) {
         throw Exception('No valid fields to update.');
@@ -57,8 +90,8 @@ class UserProfileRemoteRepository {
 
       final result = await supabaseClient
           .from('user_profiles')
-          .update(updates) // ✅ Changed from upsert to update
-          .eq('user_id', userId) // ✅ Added filter
+          .update(updates)
+          .eq('user_id', userId)
           .select()
           .single();
 

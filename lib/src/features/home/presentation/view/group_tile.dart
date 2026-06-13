@@ -5,16 +5,19 @@ import 'package:congregate/src/router/routes.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class GroupTile extends ConsumerWidget {
   const GroupTile({
     required this.isAdmin,
     required this.group,
+    this.isLeader = false,
     this.hasJoined = false,
     super.key,
   });
 
   final bool isAdmin;
+  final bool isLeader;
   final bool hasJoined;
   final Group group;
 
@@ -71,21 +74,34 @@ class GroupTile extends ConsumerWidget {
         vertical: 4,
       ),
       child: ListTile(
-        onTap: () {
-          GroupDetailsRoute(
-            groupId: group.id,
-            groupName: group.name,
-            isPublic: group.isPublic,
-          ).push<void>(context);
-        },
+        onTap: () => context.push(
+          '/group/${group.id}'
+          '?name=${Uri.encodeComponent(group.name)}'
+          '&public=${group.isPublic}',
+        ),
         leading: isAdmin
             ? const Icon(Icons.verified, color: Colors.amber)
-            : const Icon(Icons.group_outlined),
+            : isLeader
+                ? const Icon(Icons.star, color: Colors.orange)
+                : const Icon(Icons.group_outlined),
         title: Text(group.name),
-        subtitle: Text(
-          group.isPublic
-              ? 'Public • ${group.role?.capitalize() ?? ''}'
-              : 'Private • ${group.role?.capitalize() ?? ''}',
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              group.isPublic
+                  ? 'Public • ${group.role?.capitalize() ?? ''}'
+                  : 'Private • ${group.role?.capitalize() ?? ''}',
+            ),
+            if (group.city != null || group.country != null)
+              Text(
+                [
+                  if (group.city != null) group.city!,
+                  if (group.country != null) group.country!,
+                ].join(', '),
+                style: const TextStyle(fontSize: 11),
+              ),
+          ],
         ),
         trailing: !hasJoined
             ? IconButton(

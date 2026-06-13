@@ -1,9 +1,13 @@
 import 'dart:developer';
 
 import 'package:congregate/src/constants/app_sizes.dart';
+import 'package:congregate/src/features/login/data/recovery_repository.dart';
+import 'package:congregate/src/features/login/presentation/controller/login_controller.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/user_profile_notifier.dart';
+import 'package:congregate/src/router/scaffold_with_nav_bar.dart';
 import 'package:congregate/src/utils/extension_methods/context_extensions.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
+import 'package:congregate/src/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(userProfileProvider);
 
-    return Scaffold(
+    return BottomNavScaffold(child: Scaffold(
       appBar: AppBar(
         title: Text('Profile'.hardcoded),
         actions: [
@@ -52,6 +56,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 'Save'.hardcoded,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Sign out',
+              onPressed: ref.read(loginControllerProvider.notifier).signOut,
             ),
         ],
       ),
@@ -129,6 +139,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ],
                   ),
+                  gapH16,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Dark mode'.hardcoded,
+                          style: context.textTheme.bodyLarge,
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: ref.watch(themeModeProvider) == ThemeMode.dark,
+                        onChanged: (_) =>
+                            ref.read(themeModeProvider.notifier).toggle(),
+                      ),
+                    ],
+                  ),
+                  gapH24,
+                  const Divider(),
+                  gapH8,
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.key_outlined),
+                    title: const Text('Recovery key'),
+                    subtitle: const Text(
+                      'Generate a new key to recover your account after reinstall',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showRecoveryKeySheet(context),
+                  ),
                   gapH32,
                   // --- Share Button ---
                   SizedBox(
@@ -178,6 +218,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           );
         },
       ),
+    ));
+  }
+
+  Future<void> _showRecoveryKeySheet(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => _RecoveryKeySheet(ref: ref),
     );
   }
 
@@ -213,5 +264,124 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         setState(() => _isSaving = false);
       }
     }
+  }
+}
+
+class _RecoveryKeySheet extends StatefulWidget {
+  const _RecoveryKeySheet({required this.ref});
+  final WidgetRef ref;
+
+  @override
+  State<_RecoveryKeySheet> createState() => _RecoveryKeySheetState();
+}
+
+class _RecoveryKeySheetState extends State<_RecoveryKeySheet> {
+  String? _token;
+  bool _hasCopied = false;
+  bool _isLoading = false;
+
+  Future<void> _generate() async {
+    setState(() { _isLoading = true; _hasCopied = false; _token = null; });
+    try {
+      final token = await widget.ref
+          .read(recoveryRepositoryProvider)
+          .generateAndSaveToken();
+      if (mounted) setState(() { _token = token; _isLoading = false; });
+    } on Exception catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _copy() async {
+    if (_token == null) return;
+    await Clipboard.setData(ClipboardData(text: _token!));
+    if (mounted) setState(() => _hasCopied = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24, 24, 24,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.key_outlined),
+              gapW12,
+              Text(
+                'Recovery key',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          gapH16,
+          Text(
+            'Generate a new key to save. This replaces your previous key '
+            '— the old one will stop working immediately.',
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
+          ),
+          gapH24,
+          if (_token != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: Text(
+                _token!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+            gapH12,
+            OutlinedButton.icon(
+              onPressed: _copy,
+              icon: Icon(_hasCopied ? Icons.check : Icons.copy_outlined),
+              label: Text(_hasCopied ? 'Copied!' : 'Copy key'),
+            ),
+            gapH8,
+            Text(
+              'Save this now — it cannot be shown again.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            gapH16,
+          ],
+          FilledButton(
+            onPressed: _isLoading ? null : _generate,
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(_token == null ? 'Generate key' : 'Generate new key'),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -14,6 +14,8 @@ abstract class GroupEvent with _$GroupEvent {
     @JsonKey(name: 'prayer_place') required String prayerPlace,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'note') String? note,
+    double? latitude,
+    double? longitude,
   }) = _GroupEvent;
 
   factory GroupEvent.fromJson(Map<String, dynamic> json) =>
@@ -28,11 +30,14 @@ enum PrayerType {
   isha('Isha'),
   nafl('Nafl'),
   taraweeh('Taraweeh'),
-  tahajjud('Tahajjud')
-  ;
+  tahajjud('Tahajjud'),
+  dhuhrAsr('Dhuhr+Asr'),
+  maghribIsha('Maghrib+Isha');
 
   const PrayerType(this.displayName);
   final String displayName;
 
-  String get value => name;
+  String get value => displayName;
+
+  bool get isCombined => this == dhuhrAsr || this == maghribIsha;
 }

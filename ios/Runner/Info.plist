@@ -45,20 +45,12 @@
 		<true />
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true />
-		<key>GIDClientID</key>
-		<string>1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go.apps.googleusercontent.com</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Congregate uses your location to set the prayer gathering location.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Congregate uses your location to set the prayer gathering location.</string>
 		<key>CFBundleURLTypes</key>
 		<array>
-			<dict>
-				<key>CFBundleTypeRole</key>
-				<string>Editor</string>
-				<key>CFBundleURLSchemes</key>
-				<array>
-					<string>
-						com.googleusercontent.apps.1022876601447-3p7l1qu23p52u0phmkhth0oa4ui8i3go</string>
-				</array>
-			</dict>
-			<!-- TODO: Test this! -->
 			<dict>
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
@@ -69,8 +61,10 @@
 					<string>congregate</string>
 				</array>
 			</dict>
-
 		</array>
-
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Used to upload business profile and event images.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Used to take photos for business profile and event images.</string>
 	</dict>
 </plist>

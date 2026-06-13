@@ -1,9 +1,10 @@
 import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
+import 'package:congregate/src/features/group/data/group_remote_repository.dart';
 import 'package:congregate/src/features/group_details/presentation/controllers/group_members_provider.dart';
 import 'package:congregate/src/features/group_details/presentation/views/event_card.dart';
-import 'package:congregate/src/router/routes.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
+import 'package:go_router/go_router.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,25 +27,48 @@ class GroupDetailsScreen extends ConsumerStatefulWidget {
 
 class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
   bool _isAdmin = false;
+  bool _isLeader = false;
 
   @override
   void initState() {
     super.initState();
-    _checkAdminStatus();
+    _checkRoles();
   }
 
-  Future<void> _checkAdminStatus() async {
+  Future<void> _checkRoles() async {
     final members = await ref.read(groupMembersProvider(widget.groupId).future);
     final userId = ref.read(supabaseProvider).client.auth.currentUser?.id;
 
     if (userId != null && mounted) {
-      final currentMember = members.firstWhere(
-        (m) => m.userId == userId,
-        orElse: () => members.first,
-      );
+      final myMember = members.where((m) => m.userId == userId).firstOrNull;
       setState(() {
-        _isAdmin = currentMember.role == 'admin';
+        _isAdmin = myMember?.role == 'admin';
+        _isLeader = myMember?.role == 'leader';
       });
+    }
+  }
+
+  Future<void> _updateMemberRole(String targetUserId, String newRole) async {
+    try {
+      await ref
+          .read(groupRemoteRepositoryProvider)
+          .updateMemberRole(
+            groupId: widget.groupId,
+            targetUserId: targetUserId,
+            newRole: newRole,
+          );
+      ref.invalidate(groupMembersProvider(widget.groupId));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Role updated to $newRole')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e')),
+        );
+      }
     }
   }
 
@@ -67,31 +91,28 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.groupName),
-        actions: _isAdmin
+        actions: (_isAdmin || _isLeader)
             ? [
-                IconButton(
-                  icon: const Icon(Icons.share),
-                  onPressed: () => SharePrivateGroupSheetRoute(
-                    groupId: widget.groupId,
-                  ).push<void>(context),
-                ),
-                IconButton(
-                  onPressed: () {
-                    EditGroupDetailsModalSheetRoute(
-                      groupId: widget.groupId,
-                      groupName: widget.groupName,
-                      isPublic: widget.isPublic,
-                    ).push<void>(context);
-                  },
-                  icon: const Icon(Icons.edit),
-                ),
+                if (_isAdmin) ...[
+                  IconButton(
+                    icon: const Icon(Icons.share),
+                    onPressed: () =>
+                        context.push('/share-group/${widget.groupId}'),
+                  ),
+                  IconButton(
+                    onPressed: () => context.push(
+                      '/edit-group/${widget.groupId}'
+                      '?name=${Uri.encodeComponent(widget.groupName)}'
+                      '&public=${widget.isPublic}',
+                    ),
+                    icon: const Icon(Icons.edit),
+                  ),
+                ],
               ]
             : null,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => CreateEventModalSheetRoute(
-          groupId: widget.groupId,
-        ).push<void>(context),
+        onPressed: () => context.push('/create-event/${widget.groupId}'),
         icon: const Icon(Icons.add),
         label: const Text('Create Prayer Event'),
       ),
@@ -152,19 +173,47 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
                   ),
                 ),
                 gapH8,
-                ...(members.toList()..sort((a, b) {
-                      if (a.role == 'admin' && b.role != 'admin') return -1;
-                      if (a.role != 'admin' && b.role == 'admin') return 1;
-                      return 0;
-                    }))
+                ...(members.toList()
+                      ..sort((a, b) {
+                        const order = {'admin': 0, 'leader': 1, 'member': 2};
+                        return (order[a.role] ?? 2)
+                            .compareTo(order[b.role] ?? 2);
+                      }))
                     .map(
                       (m) => ListTile(
                         leading: Icon(
-                          m.role == 'admin' ? Icons.star : Icons.person_outline,
-                          color: m.role == 'admin' ? Colors.amber : null,
+                          m.role == 'admin'
+                              ? Icons.verified
+                              : m.role == 'leader'
+                                  ? Icons.star
+                                  : Icons.person_outline,
+                          color: m.role == 'admin'
+                              ? Colors.amber
+                              : m.role == 'leader'
+                                  ? Colors.orange
+                                  : null,
                         ),
                         title: Text(m.displayName),
-                        subtitle: Text(m.role == 'admin' ? 'Admin' : 'Member'),
+                        subtitle: Text(m.role.capitalize()),
+                        trailing: _isAdmin && m.role != 'admin'
+                            ? PopupMenuButton<String>(
+                                tooltip: 'Change role',
+                                onSelected: (newRole) =>
+                                    _updateMemberRole(m.userId, newRole),
+                                itemBuilder: (_) => [
+                                  if (m.role != 'leader')
+                                    const PopupMenuItem(
+                                      value: 'leader',
+                                      child: Text('Promote to Leader'),
+                                    ),
+                                  if (m.role != 'member')
+                                    const PopupMenuItem(
+                                      value: 'member',
+                                      child: Text('Demote to Member'),
+                                    ),
+                                ],
+                              )
+                            : null,
                       ),
                     ),
               ],

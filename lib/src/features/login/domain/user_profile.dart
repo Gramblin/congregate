@@ -11,6 +11,8 @@ abstract class UserProfile with _$UserProfile {
     @JsonKey(name: 'real_name') String? realName,
     @JsonKey(name: 'show_real_name') @Default(false) bool showRealName,
     @JsonKey(name: 'created_at') DateTime? createdAt,
+    String? country,
+    String? city,
   }) = _UserProfile;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) =>

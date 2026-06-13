@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
@@ -107,7 +108,7 @@ class MainInitializationUtils {
     // ✅ Optional: update FCM token if permission granted
     if (notificationPermissionGiven) {
       // Update FCM token in database on app startup
-      await _updateFcmTokenInDatabase();
+      unawaited(_updateFcmTokenInDatabase());
 
       // Re-subscribe to all group topics (handles app reinstall)
       if (currentUser != null) {
@@ -118,8 +119,9 @@ class MainInitializationUtils {
     return container;
   }
 
-  /// Update FCM token in database
-  static Future<void> _updateFcmTokenInDatabase() async {
+  /// Update FCM token in database. Retries once after a delay on iOS
+  /// to handle the APNS token not yet being available.
+  static Future<void> _updateFcmTokenInDatabase({int attempt = 1}) async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return;
@@ -138,8 +140,16 @@ class MainInitializationUtils {
           .eq('user_id', userId);
 
       debugPrint('✅ FCM token updated in database');
-    } on Exception catch (e, st) {
-      debugPrint('❌ Failed to update FCM token: $e\n$st');
+    } on Exception catch (e) {
+      final isApnsError = e.toString().contains('apns-token-not-set');
+      if (isApnsError && attempt < 4) {
+        final delay = Duration(seconds: attempt * 3);
+        debugPrint('⏳ APNS token not ready, retrying in ${delay.inSeconds}s...');
+        await Future<void>.delayed(delay);
+        await _updateFcmTokenInDatabase(attempt: attempt + 1);
+      } else {
+        debugPrint('❌ Failed to update FCM token: $e');
+      }
     }
   }
 
@@ -199,7 +209,7 @@ class MainInitializationUtils {
     );
 
     await flutterLocalNotificationsPlugin.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: (details) {
         debugPrint('Notification action: ${details.actionId}');
         debugPrint('Notification payload: ${details.payload}');
@@ -237,7 +247,7 @@ class MainInitializationUtils {
 
   /// Setup foreground message listener
   static void _setupForegroundMessageListener() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessage.listen((message) {
       debugPrint('📬 Foreground message received!');
       debugPrint('Data: ${message.data}');
 
@@ -274,10 +284,10 @@ class MainInitializationUtils {
 
       // Show local notification with action buttons
       flutterLocalNotificationsPlugin.show(
-        message.hashCode,
-        title,
-        body,
-        const NotificationDetails(
+        id: message.hashCode,
+        title: title,
+        body: body,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'prayer_events_channel',
             'Prayer Event Notifications',
@@ -313,7 +323,7 @@ class MainInitializationUtils {
   /// Setup notification tap handlers
   static void _setupNotificationTapHandlers() {
     // Handle notification tap when app is in background (not terminated)
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
       debugPrint('🔔 Notification tapped (background)!');
       _handleNotificationTap(message.data);
     });
@@ -393,10 +403,10 @@ class MainInitializationUtils {
     );
 
     await flutterLocalNotificationsPlugin.show(
-      message.hashCode,
-      message.notification?.title ?? 'New Notification',
-      message.notification?.body ?? '',
-      notificationDetails,
+      id: message.hashCode,
+      title: message.notification?.title ?? 'New Notification',
+      body: message.notification?.body ?? '',
+      notificationDetails: notificationDetails,
       payload: message.data.isNotEmpty ? jsonEncode(message.data) : null,
     );
   }
@@ -452,10 +462,10 @@ class MainInitializationUtils {
 
       // Show confirmation notification
       await flutterLocalNotificationsPlugin.show(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'Attendance Confirmed',
-        "You're marked as attending this prayer gathering",
-        const NotificationDetails(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: 'Attendance Confirmed',
+        body: "You're marked as attending this prayer gathering",
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'prayer_events_channel',
             'Prayer Event Notifications',
@@ -506,10 +516,10 @@ class MainInitializationUtils {
 
       // Show confirmation notification
       await flutterLocalNotificationsPlugin.show(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'Response Recorded',
-        "You've declined this prayer gathering",
-        const NotificationDetails(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: 'Response Recorded',
+        body: "You've declined this prayer gathering",
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'prayer_events_channel',
             'Prayer Event Notifications',
