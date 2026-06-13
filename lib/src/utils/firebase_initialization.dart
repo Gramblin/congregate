@@ -59,10 +59,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       message.data['body'] as String? ?? message.notification?.body ?? '';
 
   await main_initialization_utils.flutterLocalNotificationsPlugin.show(
-    message.hashCode,
-    title,
-    body,
-    const NotificationDetails(
+    id: message.hashCode,
+    title: title,
+    body: body,
+    notificationDetails: const NotificationDetails(
       android: AndroidNotificationDetails(
         'prayer_events_channel',
         'Prayer Event Notifications',

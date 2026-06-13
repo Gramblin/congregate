@@ -3,8 +3,10 @@ import 'dart:developer';
 import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/login/data/recovery_repository.dart';
 import 'package:congregate/src/features/login/presentation/controller/login_controller.dart';
+import 'package:congregate/src/features/profile/data/profile_stats_repository.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/user_profile_notifier.dart';
 import 'package:congregate/src/router/scaffold_with_nav_bar.dart';
+import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:congregate/src/utils/extension_methods/context_extensions.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:congregate/src/utils/theme_provider.dart';
@@ -82,12 +84,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           final shareLink = 'https://congregate.app/profile/${profile.userId}';
 
+          final userId = ref.watch(supabaseProvider).client.auth.currentUser?.id;
+          final statsAsync = userId != null
+              ? ref.watch(userStatsProvider(userId))
+              : null;
+
           return Padding(
             padding: const EdgeInsets.all(Sizes.p16),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // --- Impact Level ---
+                  if (statsAsync != null)
+                    statsAsync.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                      data: (stats) => _LevelCard(stats: stats),
+                    ),
+                  if (statsAsync != null) gapH24,
                   // --- Display Name ---
                   Text(
                     'Display Name'.hardcoded,
@@ -382,6 +397,107 @@ class _RecoveryKeySheetState extends State<_RecoveryKeySheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LevelCard extends StatelessWidget {
+  const _LevelCard({required this.stats});
+  final UserStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final level = stats.level;
+    final nextAt = level.nextLevelAt();
+    final progress = nextAt == -1
+        ? 1.0
+        : (stats.eventsAttended - level.min) /
+            (nextAt - level.min).clamp(1, 999999);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(Sizes.p16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  level.emoji,
+                  style: const TextStyle(fontSize: 32),
+                ),
+                gapW12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Level ${level.number} · ${level.title}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: Sizes.p16,
+                        ),
+                      ),
+                      Text(
+                        level.subtitle,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            gapH12,
+            LinearProgressIndicator(
+              value: progress.clamp(0.0, 1.0),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            gapH8,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _StatChip(
+                  icon: Icons.event_available,
+                  label: '${stats.eventsAttended} prayers joined',
+                ),
+                _StatChip(
+                  icon: Icons.group_outlined,
+                  label: '${stats.communitiesJoined} communities',
+                ),
+              ],
+            ),
+            if (nextAt != -1)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${nextAt - stats.eventsAttended} more to reach ${CommunityLevel.values[level.number].title}',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  const _StatChip({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Colors.grey),
+        gapW4,
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
     );
   }
 }

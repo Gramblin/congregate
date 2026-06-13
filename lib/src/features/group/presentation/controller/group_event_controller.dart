@@ -22,15 +22,20 @@ class GroupEventController extends _$GroupEventController {
     required DateTime prayerDateTime,
     required String prayerPlace,
     String? note,
+    double? latitude,
+    double? longitude,
+    List<String> sponsorBusinessIds = const [],
   }) async {
     state = const AsyncLoading();
 
     final userId = ref.read(supabaseProvider).client.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not logged in');
+    if (userId == null || userId.isEmpty) throw Exception('User not logged in');
+    if (groupId.isEmpty) throw Exception('groupId is empty — route parameter missing');
 
     print('🔵 Starting createEventAndNotify');
+    print('🔵 groupId: "$groupId"');
+    print('🔵 userId: "$userId"');
     print('🔵 Prayer DateTime: $prayerDateTime');
-    print('🔵 Prayer DateTime UTC: ${prayerDateTime.toUtc()}');
 
     state = await AsyncValue.guard(() async {
       try {
@@ -44,6 +49,9 @@ class GroupEventController extends _$GroupEventController {
           prayerDateTime: prayerDateTime,
           prayerPlace: prayerPlace,
           note: note,
+          latitude: latitude,
+          longitude: longitude,
+          sponsorBusinessIds: sponsorBusinessIds,
         );
         print('✅ Event created: ${event.id}');
 
@@ -56,18 +64,22 @@ class GroupEventController extends _$GroupEventController {
         );
         print('✅ Attendance marked');
 
-        // 3. Send FCM notification via edge function
+        // 3. Send FCM notification via edge function (non-fatal)
         print('🔵 Step 3: Sending notification...');
-        final fcmService = ref.read(fcmNotificationRemoteRepositoryProvider);
-        await fcmService.sendPrayerEventNotification(
-          groupId: groupId,
-          prayerType: prayerType,
-          prayerDateTime: prayerDateTime,
-          eventId: event.id,
-          prayerPlace: prayerPlace,
-          note: note,
-        );
-        print('✅ Notification sent');
+        try {
+          final fcmService = ref.read(fcmNotificationRemoteRepositoryProvider);
+          await fcmService.sendPrayerEventNotification(
+            groupId: groupId,
+            prayerType: prayerType,
+            prayerDateTime: prayerDateTime,
+            eventId: event.id,
+            prayerPlace: prayerPlace,
+            note: note,
+          );
+          print('✅ Notification sent');
+        } on Exception catch (e) {
+          print('⚠️ Notification failed (non-fatal): $e');
+        }
 
         // 4. Refresh the events list
         if (ref.mounted) {

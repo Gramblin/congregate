@@ -97,6 +97,46 @@ class BusinessDetailsScreen extends ConsumerWidget {
                             style: const TextStyle(fontSize: 12)),
                       ],
                     ),
+                    asyncEvents.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                      data: (evs) {
+                        final products =
+                            evs.where((e) => e.type == 'product').length;
+                        final events =
+                            evs.where((e) => e.type == 'event').length;
+                        return Wrap(
+                          spacing: 12,
+                          children: [
+                            if (products > 0)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.storefront_outlined,
+                                      size: 12),
+                                  gapW4,
+                                  Text(
+                                    '$products product${products == 1 ? '' : 's'}',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            if (events > 0)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.event_outlined, size: 12),
+                                  gapW4,
+                                  Text(
+                                    '$events event${events == 1 ? '' : 's'}',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),

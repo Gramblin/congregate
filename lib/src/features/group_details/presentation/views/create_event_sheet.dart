@@ -234,7 +234,7 @@ class _CreateEventBottomSheetState
         .createEventAndNotify(
           groupId: widget.groupId,
           prayerType: _selectedPrayerType.value,
-          prayerDateTime: prayerDateTime, // Send complete datetime
+          prayerDateTime: prayerDateTime,
           prayerPlace: _placeController.text.trim(),
           note: _noteController.text.trim().isEmpty
               ? null
@@ -639,3 +639,4 @@ class _CreateEventBottomSheetState
     super.dispose();
   }
 }
+

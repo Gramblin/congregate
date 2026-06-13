@@ -2,7 +2,7 @@ import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/utils/extension_methods/context_extensions.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:flutter_material_design_icons/flutter_material_design_icons.dart';
 
 class ErrorScreen extends StatelessWidget {
   const ErrorScreen({required this.uriPath, super.key});

@@ -5,6 +5,7 @@ import 'package:congregate/src/router/app_router.dart';
 import 'package:congregate/src/utils/deep_link_handler.dart';
 import 'package:congregate/src/utils/notifications_service.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
+import 'package:congregate/src/utils/theme_provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -135,7 +136,7 @@ class CongregateAppState extends ConsumerState<CongregateApp> {
         ),
       ),
       routerConfig: ref.watch(routerProvider),
-      themeMode: ThemeMode.light,
+      themeMode: ref.watch(themeModeProvider),
     );
   }
 

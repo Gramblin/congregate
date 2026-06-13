@@ -1,11 +1,7 @@
-import 'dart:io';
-
-import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/login/presentation/controller/login_controller.dart';
+import 'package:congregate/src/router/routes.dart';
 import 'package:congregate/src/utils/extension_methods/context_extensions.dart';
-import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -19,10 +15,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    setUpAuthListener();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(loginControllerProvider.notifier).signInAnonymously();
+    });
   }
-
-  void setUpAuthListener() {}
 
   @override
   Widget build(BuildContext context) {
@@ -35,56 +31,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
-    final isLoading = ref.watch(loginControllerProvider).isLoading;
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: Platform.isIOS
-          ? SystemUiOverlayStyle.dark
-          : SystemUiOverlayStyle.light,
-      child: Stack(
-        children: [
-          Scaffold(
-            body: ref
-                .watch(userStreamProvider)
-                .when(
-                  data: (data) {
-                    final userAvailable = data.session != null;
-                    return Column(
-                      children: [
-                        gapH128,
-                        const Spacer(),
-                        Text(
-                          'Sign in with Google'.hardcoded,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: Sizes.p48,
-                          ),
-                          textAlign: .center,
-                        ),
-                        gapH32,
-
-                        TextButton(
-                          onPressed: !userAvailable && !isLoading
-                              ? ref
-                                    .read(
-                                      loginControllerProvider.notifier,
-                                    )
-                                    .logInUsingGoogle
-                              : null,
-                          child: Text(
-                            'Sign in With Google'.hardcoded,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const Spacer(flex: 3),
-                      ],
-                    );
-                  },
-                  error: (error, stackTrace) => SelectableText('Error $error'),
-                  loading: CircularProgressIndicator.new,
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 48),
+              TextButton.icon(
+                onPressed: () => const AccountRecoveryRoute().push<void>(context),
+                icon: const Icon(Icons.key_outlined, size: 18),
+                label: const Text('Recover existing account'),
+                style: TextButton.styleFrom(
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

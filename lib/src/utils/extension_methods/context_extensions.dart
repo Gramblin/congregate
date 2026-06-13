@@ -3,7 +3,7 @@ import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:flutter_material_design_icons/flutter_material_design_icons.dart';
 
 enum SuccessTypeEnum { success, neutral, error }
 

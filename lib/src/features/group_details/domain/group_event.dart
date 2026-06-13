@@ -3,6 +3,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'group_event.freezed.dart';
 part 'group_event.g.dart';
 
+class EventSponsor {
+  const EventSponsor({
+    required this.businessId,
+    required this.businessName,
+    this.profileImageUrl,
+  });
+  final String businessId;
+  final String businessName;
+  final String? profileImageUrl;
+}
+
 @freezed
 abstract class GroupEvent with _$GroupEvent {
   const factory GroupEvent({
@@ -16,6 +27,9 @@ abstract class GroupEvent with _$GroupEvent {
     @JsonKey(name: 'note') String? note,
     double? latitude,
     double? longitude,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default([])
+    List<EventSponsor> sponsors,
   }) = _GroupEvent;
 
   factory GroupEvent.fromJson(Map<String, dynamic> json) =>

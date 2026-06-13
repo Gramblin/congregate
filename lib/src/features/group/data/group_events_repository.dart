@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:congregate/src/features/group/domain/event_attendee.dart';
 import 'package:congregate/src/features/group_details/domain/group_event.dart';
+// ignore_for_file: avoid_dynamic_calls
 import 'package:congregate/src/utils/main_initialization_utils.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,6 +21,9 @@ class GroupEventsRepository {
     required DateTime prayerDateTime,
     required String prayerPlace,
     String? note,
+    double? latitude,
+    double? longitude,
+    List<String> sponsorBusinessIds = const [],
   }) async {
     final response = await client
         .from('group_events')
@@ -29,21 +33,40 @@ class GroupEventsRepository {
           'prayer_type': prayerType,
           'prayer_datetime': prayerDateTime.toUtc().toIso8601String(),
           'prayer_place': prayerPlace,
-          if (note != null) 'note': note,
+          'note': ?note,
+          'latitude': ?latitude,
+          'longitude': ?longitude,
         })
         .select()
         .single();
 
-    return GroupEvent.fromJson(response);
+    final event = GroupEvent.fromJson(response);
+
+    // Insert sponsors if any
+    if (sponsorBusinessIds.isNotEmpty) {
+      await client.from('event_sponsors').insert(
+        sponsorBusinessIds.map((bId) => {
+          'event_id': event.id,
+          'business_id': bId,
+        }).toList(),
+      );
+    }
+
+    return event;
   }
 
-  /// Get events for a specific group
+  /// Get events for a specific group (with sponsors)
   Future<List<GroupEvent>> getGroupEvents({
     required String groupId,
     DateTime? fromDate,
   }) async {
     try {
-      var query = client.from('group_events').select().eq('group_id', groupId);
+      var query = client
+          .from('group_events')
+          .select(
+            '*, event_sponsors(business_id, businesses(id, name, profile_image_url))',
+          )
+          .eq('group_id', groupId);
 
       if (fromDate != null) {
         query = query.gte(
@@ -54,9 +77,19 @@ class GroupEventsRepository {
 
       final response = await query.order('prayer_datetime');
 
-      return (response as List)
-          .map((json) => GroupEvent.fromJson(json as Map<String, dynamic>))
-          .toList();
+      return (response as List).map((json) {
+        final row = json as Map<String, dynamic>;
+        final sponsorRows = row['event_sponsors'] as List<dynamic>? ?? [];
+        final sponsors = sponsorRows.map((s) {
+          final biz = s['businesses'] as Map<String, dynamic>?;
+          return EventSponsor(
+            businessId: s['business_id'] as String,
+            businessName: biz?['name'] as String? ?? '',
+            profileImageUrl: biz?['profile_image_url'] as String?,
+          );
+        }).toList();
+        return GroupEvent.fromJson(row).copyWith(sponsors: sponsors);
+      }).toList();
     } catch (e, st) {
       log('GroupEventsRepository.getGroupEvents error: $e\n$st');
       throw Exception('Failed to fetch events: $e');
@@ -274,7 +307,7 @@ class GroupEventsRepository {
   /// Cancel a scheduled reminder
   Future<void> cancelEventReminder(String eventId) async {
     try {
-      await flutterLocalNotificationsPlugin.cancel(eventId.hashCode);
+      await flutterLocalNotificationsPlugin.cancel(id: eventId.hashCode);
       log('Cancelled reminder for event: $eventId');
     } on Exception catch (e, st) {
       log('Failed to cancel reminder: $e\n$st');

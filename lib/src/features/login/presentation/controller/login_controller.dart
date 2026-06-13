@@ -1,12 +1,10 @@
-import 'dart:io';
-
 import 'package:congregate/src/features/login/data/login_remote_repository.dart';
+import 'package:congregate/src/features/profile/presentation/controllers/user_profile_notifier.dart';
 import 'package:congregate/src/router/app_router.dart';
 import 'package:congregate/src/utils/preferences_provider.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 part 'login_controller.g.dart';
 
@@ -27,15 +25,16 @@ class LoginController extends _$LoginController {
     return const AsyncData(null);
   }
 
-  Future<void> logInUsingGoogle() async {
+  Future<void> signInAnonymously() async {
     state = const AsyncLoading();
-    final repository = ref.read(loginRemoteRepositoryProvider);
-    setUpAuthListener();
-    await ref.read(preferencesProvider).remove('user_profile');
 
-    final result = await AsyncValue.guard(repository.fetchGoogleLogin);
-    ref.read(userIdProvider);
+    final repository = ref.read(loginRemoteRepositoryProvider);
+    await ref.read(userProfileProvider.notifier).clearCache();
+
+    final result = await AsyncValue.guard(repository.signInAnonymously);
+
     if (!result.hasError) {
+      await ref.read(userProfileProvider.notifier).refreshProfile();
       state = const AsyncData(null);
       ref.invalidate(routerProvider);
     } else {
@@ -55,18 +54,5 @@ class LoginController extends _$LoginController {
     } else {
       state = AsyncError(result.error!, StackTrace.current);
     }
-  }
-
-  void setUpAuthListener() {
-    ref.read(supabaseProvider).client.auth.onAuthStateChange.listen((
-      data,
-    ) async {
-      if (data.session?.accessToken != null && !Platform.isMacOS) {
-        await closeInAppWebView();
-      }
-      if (data.event == AuthChangeEvent.signedIn) {
-        // await getAndCacheUserProfile();
-      }
-    });
   }
 }

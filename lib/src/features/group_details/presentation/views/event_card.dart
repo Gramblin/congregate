@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group/data/group_events_repository.dart';
 import 'package:congregate/src/features/group/presentation/controller/group_event_controller.dart';
@@ -114,6 +115,27 @@ class _EventCardState extends ConsumerState<EventCard> {
                   gapH4,
                   if (widget.event.note != null)
                     Text('Note: ${widget.event.note}'),
+                  if (widget.event.sponsors.isNotEmpty) ...[
+                    gapH4,
+                    Wrap(
+                      spacing: 6,
+                      children: widget.event.sponsors.map((s) => Chip(
+                        padding: EdgeInsets.zero,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        avatar: s.profileImageUrl != null
+                            ? CircleAvatar(
+                                backgroundImage: CachedNetworkImageProvider(
+                                  s.profileImageUrl!,
+                                ),
+                              )
+                            : const Icon(Icons.store_outlined, size: 14),
+                        label: Text(
+                          s.businessName,
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
                   gapH4,
                   Text(
                     '$goingCount ${goingCount == 1 ? 'person' : 'people'} going',

@@ -906,3 +906,4 @@ google_service_account.json
 **/fastlane/test_output
 android/fastlane/.env
 .flutter-plugins-dependencies
+.mcp.json

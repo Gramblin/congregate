@@ -9,7 +9,9 @@ import 'package:congregate/src/features/group_details/presentation/views/group_d
 import 'package:congregate/src/features/group_details/presentation/views/share_private_group_sheet.dart';
 import 'package:congregate/src/features/home/presentation/view/home_screen.dart';
 import 'package:congregate/src/features/home/presentation/view/join_group_sheet.dart';
+import 'package:congregate/src/features/login/presentation/account_recovery_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
+import 'package:congregate/src/features/login/presentation/recovery_token_screen.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/views/profile_screen.dart';
 import 'package:congregate/src/features/profile/presentation/controllers/views/profile_setup_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,7 +23,13 @@ part 'routes.g.dart';
 
 @TypedGoRoute<LoginRoute>(
   path: '/login',
-  routes: [TypedGoRoute<ProfileSetupRoute>(path: 'profile-setup')],
+  routes: [
+    TypedGoRoute<ProfileSetupRoute>(
+      path: 'profile-setup',
+      routes: [TypedGoRoute<RecoveryTokenRoute>(path: 'recovery-token')],
+    ),
+    TypedGoRoute<AccountRecoveryRoute>(path: 'recover'),
+  ],
 )
 @immutable
 class LoginRoute extends GoRouteData with $LoginRoute {
@@ -46,6 +54,42 @@ class ProfileSetupRoute extends GoRouteData with $ProfileSetupRoute {
         : const CupertinoPage(
             child: ProfileSetupScreen(),
             name: 'ProfileSetup',
+          );
+  }
+}
+
+@immutable
+class RecoveryTokenRoute extends GoRouteData with $RecoveryTokenRoute {
+  const RecoveryTokenRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return Platform.isAndroid
+        ? const MaterialPage(
+            child: RecoveryTokenScreen(),
+            name: 'RecoveryToken',
+          )
+        : const CupertinoPage(
+            child: RecoveryTokenScreen(),
+            name: 'RecoveryToken',
+          );
+  }
+}
+
+@immutable
+class AccountRecoveryRoute extends GoRouteData with $AccountRecoveryRoute {
+  const AccountRecoveryRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) {
+    return Platform.isAndroid
+        ? const MaterialPage(
+            child: AccountRecoveryScreen(),
+            name: 'AccountRecovery',
+          )
+        : const CupertinoPage(
+            child: AccountRecoveryScreen(),
+            name: 'AccountRecovery',
           );
   }
 }
