@@ -4,24 +4,11 @@ import 'package:congregate/src/utils/extension_methods/context_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends ConsumerState<LoginScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(loginControllerProvider.notifier).signInAnonymously();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(loginControllerProvider, (_, next) {
       if (next is AsyncError) {
         context.showInformationToast(
@@ -31,16 +18,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    final loginState = ref.watch(loginControllerProvider);
+    final isLoading = loginState is AsyncLoading;
+
     return Scaffold(
       body: SafeArea(
-        child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(),
+              const Spacer(),
+              Text(
+                'Welcome to Congregate',
+                style: Theme.of(context).textTheme.headlineMedium,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 48),
+              if (isLoading) const CircularProgressIndicator(),
+              if (!isLoading) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => ref
+                        .read(loginControllerProvider.notifier)
+                        .signInWithGoogle(),
+                    icon: const Icon(Icons.login),
+                    label: const Text('Continue with Google'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => ref
+                        .read(loginControllerProvider.notifier)
+                        .signInAnonymously(),
+                    child: const Text('Continue as guest'),
+                  ),
+                ),
+              ],
+              const Spacer(),
               TextButton.icon(
-                onPressed: () => const AccountRecoveryRoute().push<void>(context),
+                onPressed: () =>
+                    const AccountRecoveryRoute().push<void>(context),
                 icon: const Icon(Icons.key_outlined, size: 18),
                 label: const Text('Recover existing account'),
                 style: TextButton.styleFrom(
@@ -48,6 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
