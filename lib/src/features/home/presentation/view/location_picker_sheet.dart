@@ -123,6 +123,8 @@ class _LocationPickerSheetState extends ConsumerState<LocationPickerSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: TextField(
                   controller: _countrySearch,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
                     hintText: 'Search country'.hardcoded,
                     prefixIcon: const Icon(Icons.search),
@@ -133,6 +135,8 @@ class _LocationPickerSheetState extends ConsumerState<LocationPickerSheet> {
               ),
               Expanded(
                 child: ListView.builder(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   controller: scrollController,
                   itemCount: _filtered.length,
                   itemBuilder: (context, i) {

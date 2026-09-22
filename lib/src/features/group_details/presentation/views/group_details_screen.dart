@@ -12,6 +12,8 @@ import 'package:congregate/src/features/group_details/presentation/controllers/g
 import 'package:congregate/src/features/group_details/presentation/views/create_community_event_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/event_card.dart';
 import 'package:congregate/src/features/profile/data/profile_stats_repository.dart';
+import 'package:congregate/src/features/stories/domain/story.dart';
+import 'package:congregate/src/features/stories/presentation/create_story_sheet.dart';
 import 'package:congregate/src/utils/extension_methods/string_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
@@ -154,6 +156,22 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
               ),
               icon: const Icon(Icons.event_outlined),
               label: const Text('Create Event'),
+            ),
+            gapH8,
+            FloatingActionButton.extended(
+              heroTag: 'post_story',
+              onPressed: () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                useRootNavigator: true,
+                builder: (_) => CreateStorySheet(
+                  authorType: StoryAuthorType.community,
+                  authorId: widget.groupId,
+                  authorName: widget.groupName,
+                ),
+              ),
+              icon: const Icon(Icons.auto_stories_outlined),
+              label: const Text('Post Story'),
             ),
             gapH8,
           ],

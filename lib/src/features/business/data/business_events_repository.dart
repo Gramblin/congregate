@@ -62,7 +62,9 @@ class BusinessEventsRepository {
   }) async {
     final userId = _client.auth.currentUser!.id;
     final path = '$userId/$businessId/events/$eventId.jpg';
-    await _client.storage.from('business-images').upload(
+    await _client.storage
+        .from('business-images')
+        .upload(
           path,
           image,
           fileOptions: const FileOptions(upsert: true),

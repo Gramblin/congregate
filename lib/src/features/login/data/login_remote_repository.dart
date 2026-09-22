@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:congregate/src/features/login/domain/user_profile.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginRemoteRepository {
@@ -56,6 +59,35 @@ class LoginRemoteRepository {
       );
     } catch (e) {
       throw Exception('signInWithGoogle failed: $e');
+    }
+  }
+
+  Future<AuthResponse> signInWithApple() async {
+    try {
+      final rawNonce = supabaseClient.auth.generateRawNonce();
+      final hashedNonce =
+          sha256.convert(utf8.encode(rawNonce)).toString();
+
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: hashedNonce,
+      );
+
+      final idToken = credential.identityToken;
+      if (idToken == null) {
+        throw Exception('Missing Apple ID token');
+      }
+
+      return await supabaseClient.auth.signInWithIdToken(
+        provider: OAuthProvider.apple,
+        idToken: idToken,
+        nonce: rawNonce,
+      );
+    } catch (e) {
+      throw Exception('signInWithApple failed: $e');
     }
   }
 

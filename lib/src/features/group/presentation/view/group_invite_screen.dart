@@ -66,7 +66,7 @@ class _GroupInviteScreenState extends ConsumerState<GroupInviteScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        context.go('/home'); // Navigate to home
+        context.go('/communities'); // Navigate to home
       }
     } on Exception catch (e) {
       if (mounted) {
@@ -101,7 +101,7 @@ class _GroupInviteScreenState extends ConsumerState<GroupInviteScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => context.go('/home'),
+                onPressed: () => context.go('/communities'),
                 child: const Text('Go to Home'),
               ),
             ],
@@ -136,7 +136,7 @@ class _GroupInviteScreenState extends ConsumerState<GroupInviteScreen> {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () => context.go('/home'),
+              onPressed: () => context.go('/communities'),
               child: const Text('Decline'),
             ),
           ],

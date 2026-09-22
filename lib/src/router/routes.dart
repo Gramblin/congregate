@@ -7,7 +7,7 @@ import 'package:congregate/src/features/group_details/presentation/views/edit_gr
 import 'package:congregate/src/features/group_details/presentation/views/event_attendees_list_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
 import 'package:congregate/src/features/group_details/presentation/views/share_private_group_sheet.dart';
-import 'package:congregate/src/features/home/presentation/view/home_screen.dart';
+import 'package:congregate/src/features/home/presentation/view/communities_screen.dart';
 import 'package:congregate/src/features/home/presentation/view/join_group_sheet.dart';
 import 'package:congregate/src/features/login/presentation/account_recovery_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
@@ -94,10 +94,7 @@ class AccountRecoveryRoute extends GoRouteData with $AccountRecoveryRoute {
   }
 }
 
-@TypedGoRoute<HomeRoute>(
-  path: '/home',
-  routes: [TypedGoRoute<ProfileRoute>(path: 'profile')],
-)
+@TypedGoRoute<HomeRoute>(path: '/communities')
 @immutable
 class HomeRoute extends GoRouteData with $HomeRoute {
   const HomeRoute();
@@ -105,8 +102,8 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) {
     return Platform.isAndroid
-        ? const MaterialPage(child: HomeScreen(), name: 'Home')
-        : const CupertinoPage(child: HomeScreen(), name: 'Home');
+        ? const MaterialPage(child: CommunitiesScreen(), name: 'Communities')
+        : const CupertinoPage(child: CommunitiesScreen(), name: 'Communities');
   }
 }
 
@@ -131,6 +128,7 @@ class GroupInviteRoute extends GoRouteData with $GroupInviteRoute {
   }
 }
 
+@TypedGoRoute<ProfileRoute>(path: '/profile')
 @immutable
 class ProfileRoute extends GoRouteData with $ProfileRoute {
   const ProfileRoute();
@@ -140,10 +138,12 @@ class ProfileRoute extends GoRouteData with $ProfileRoute {
     return Platform.isAndroid
         ? const MaterialPage(
             child: ProfileScreen(),
+            fullscreenDialog: true,
             name: 'Profile',
           )
         : const CupertinoPage(
             child: ProfileScreen(),
+            fullscreenDialog: true,
             name: 'Profile',
           );
   }

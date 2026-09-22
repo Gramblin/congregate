@@ -31,7 +31,10 @@ class BusinessRemoteRepository {
       if (category != null) query = query.eq('category', category);
 
       final rows = await query.order('follower_count', ascending: false);
-      return (rows as List).map((r) => Business.fromJson(r as Map<String, dynamic>)).toList();
+
+      return (rows as List)
+          .map((r) => Business.fromJson(r as Map<String, dynamic>))
+          .toList();
     } catch (e, st) {
       log('BusinessRemoteRepository.fetchBusinesses error: $e\n$st');
       rethrow;
@@ -49,7 +52,9 @@ class BusinessRemoteRepository {
         .select()
         .eq('owner_id', userId)
         .order('created_at', ascending: false);
-    return (rows as List).map((r) => Business.fromJson(r as Map<String, dynamic>)).toList();
+    return (rows as List)
+        .map((r) => Business.fromJson(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<Business> createBusiness({
@@ -142,13 +147,18 @@ class BusinessRemoteRepository {
   }) async {
     final userId = _client.auth.currentUser!.id;
     final path = '$userId/$businessId/profile.jpg';
-    await _client.storage.from('business-images').upload(
+    await _client.storage
+        .from('business-images')
+        .upload(
           path,
           image,
           fileOptions: const FileOptions(upsert: true),
         );
     final url = _client.storage.from('business-images').getPublicUrl(path);
-    await _client.from('businesses').update({'profile_image_url': url}).eq('id', businessId);
+    await _client
+        .from('businesses')
+        .update({'profile_image_url': url})
+        .eq('id', businessId);
     return url;
   }
 

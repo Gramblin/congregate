@@ -59,6 +59,23 @@ class LoginController extends _$LoginController {
     }
   }
 
+  Future<void> signInWithApple() async {
+    state = const AsyncLoading();
+
+    final repository = ref.read(loginRemoteRepositoryProvider);
+    await ref.read(userProfileProvider.notifier).clearCache();
+
+    final result = await AsyncValue.guard(repository.signInWithApple);
+
+    if (!result.hasError) {
+      await ref.read(userProfileProvider.notifier).refreshProfile();
+      state = const AsyncData(null);
+      ref.invalidate(routerProvider);
+    } else {
+      state = AsyncError(result.error!, StackTrace.current);
+    }
+  }
+
   Future<void> signOut() async {
     final repository = ref.read(loginRemoteRepositoryProvider);
     state = const AsyncLoading();

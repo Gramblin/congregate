@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:congregate/src/features/login/presentation/controller/login_controller.dart';
 import 'package:congregate/src/router/routes.dart';
 import 'package:congregate/src/utils/extension_methods/context_extensions.dart';
@@ -47,6 +49,23 @@ class LoginScreen extends ConsumerWidget {
                     label: const Text('Continue with Google'),
                   ),
                 ),
+                if (Platform.isIOS) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => ref
+                          .read(loginControllerProvider.notifier)
+                          .signInWithApple(),
+                      icon: const Icon(Icons.apple),
+                      label: const Text('Continue with Apple'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,

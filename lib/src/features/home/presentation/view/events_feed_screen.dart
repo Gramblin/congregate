@@ -4,7 +4,6 @@ import 'package:congregate/src/constants/app_sizes.dart';
 import 'package:congregate/src/features/group_details/domain/group_event.dart';
 import 'package:congregate/src/features/group_details/presentation/views/event_card.dart';
 import 'package:congregate/src/features/home/data/home_remote_repository.dart';
-import 'package:congregate/src/router/scaffold_with_nav_bar.dart';
 import 'package:congregate/src/utils/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,8 +102,7 @@ class EventsFeedScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncEvents = ref.watch(userFeedEventsProvider);
 
-    return BottomNavScaffold(
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: const Text('Prayer Events'),
           actions: [
@@ -212,7 +210,6 @@ class EventsFeedScreen extends ConsumerWidget {
             );
           },
         ),
-      ),
-    );
+      );
   }
 }

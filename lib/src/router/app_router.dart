@@ -7,8 +7,9 @@ import 'package:congregate/src/features/group_details/presentation/views/edit_gr
 import 'package:congregate/src/features/group_details/presentation/views/event_attendees_list_sheet.dart';
 import 'package:congregate/src/features/group_details/presentation/views/group_details_screen.dart';
 import 'package:congregate/src/features/group_details/presentation/views/share_private_group_sheet.dart';
-import 'package:congregate/src/features/home/presentation/view/events_feed_screen.dart';
-import 'package:congregate/src/features/home/presentation/view/home_screen.dart';
+import 'package:congregate/src/features/business/presentation/view/business_list_screen.dart';
+import 'package:congregate/src/features/business/presentation/view/followed_businesses_screen.dart';
+import 'package:congregate/src/features/home/presentation/view/communities_screen.dart';
 import 'package:congregate/src/features/home/presentation/view/join_group_sheet.dart';
 import 'package:congregate/src/features/login/presentation/account_recovery_screen.dart';
 import 'package:congregate/src/features/login/presentation/login_screen.dart';
@@ -18,6 +19,7 @@ import 'package:congregate/src/features/profile/presentation/controllers/views/p
 import 'package:congregate/src/features/profile/presentation/controllers/views/profile_setup_screen.dart';
 import 'package:congregate/src/router/app_router_observer.dart';
 import 'package:congregate/src/router/misc_routes/error_screen.dart';
+import 'package:congregate/src/router/scaffold_with_nav_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +34,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final userProfile = profileAsync.value;
 
   return GoRouter(
-    initialLocation: '/feed',
+    initialLocation: '/communities',
     navigatorKey: rootNavigatorKey,
     observers: [AppRouterObserver(ref)],
     redirect: (context, state) {
@@ -91,16 +93,39 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // ── Bottom nav tabs (each wraps itself with BottomNavScaffold) ────────
-      GoRoute(
-        path: '/feed',
-        pageBuilder: (ctx, state) =>
-            adaptivePageBuilder(const EventsFeedScreen()),
+      // ── Bottom nav shell (persistent nav; branches keep their own state) ─
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            RootShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/communities',
+                pageBuilder: (ctx, state) =>
+                    adaptivePageBuilder(const FollowedBusinessesScreen()),
+                routes: [
+                  GoRoute(
+                    path: 'all',
+                    pageBuilder: (ctx, state) =>
+                        adaptivePageBuilder(const CommunitiesScreen()),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/businesses',
+                pageBuilder: (ctx, state) =>
+                    adaptivePageBuilder(const BusinessListScreen()),
+              ),
+            ],
+          ),
+        ],
       ),
-      GoRoute(
-        path: '/home',
-        pageBuilder: (ctx, state) => adaptivePageBuilder(const HomeScreen()),
-      ),
+      // ── Profile (pushed from AppBar icon; not in bottom nav) ──────────────
       GoRoute(
         path: '/profile',
         pageBuilder: (ctx, state) => adaptivePageBuilder(const ProfileScreen()),
